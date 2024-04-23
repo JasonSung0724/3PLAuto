@@ -1,11 +1,7 @@
 import requests
 from GlobalVar import *
 import time
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.keys import Keys
+from StationFlow import __KIOSKFlow__
 
 def __MMSlogin__(MMSAccount,MMSPasword):
     global MMStoken
@@ -72,56 +68,80 @@ def __CreateCollectionBooking__(TY11=0,TY12=0,TY14=0):
     else:
         print('Create collection booking fail')
         
-def __OpenStaiton__():
-    Station503 = WebDriverWait(driver,2).until(EC.visibility_of_element_located((By.XPATH,"(//*[text()='503'])[last()]/../..")))
-    Station503.click()
-    OK = WebDriverWait(driver,2).until(EC.element_to_be_clickable((By.XPATH,"//*[text()='OK']")))
-    OK.click()
 
-
-def __KIOSKFlow__(BookingNumber):
-    global driver
-    chrome_options = webdriver.ChromeOptions()
-    chrome_options.add_argument('--start-maximized')
-    chrome_options.add_argument("--disable-notifications")
-    chrome_options.add_argument("--use-fake-ui-for-media-stream")
-    driver = webdriver.Chrome(options=chrome_options)
-    SelectStation = f'https://mwms-kiosk-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/selectStation'
-    driver.get(SelectStation)
-    AuthenticateForStation = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/authenticate_for_station'
-    AuthBudy = {
-                "userName": "selectPage",
-                "userPassword": ""
-                }
-    AuthenticateResponse = requests.post(AuthenticateForStation,json=AuthBudy).json()
-    StationToken = AuthenticateResponse['data']['token']
-    StationHeaders = {
-                        'Authorization' : f'Bearer {StationToken}'
+def __CollectionAPI__(BookingNumber,stationKey,ToteList):
+    GetTaskNoURL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/task_number/get_task_number?serviceType=TOTE_COLLECTION&bookingNo={BookingNumber}'
+    TaskNoResponse = requests.get(GetTaskNoURL).json()
+    TaskNo = TaskNoResponse['responseData'][0]['taskNo']
+    print("Get Collection Task no. " + TaskNo)
+    containerCode = ','.join(map(str, ToteList))
+    M5111URL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/wcs/tote_location_report'
+    M5111Body = {
+                "msgTime": "2021-09-01T19:02:33.597+08:00",
+                "msgId": "e4ef9fee-d6de-4bcc-9a90-cb1e091a6092",
+                "data": [
+                    {
+                        "taskNo": TaskNo,
+                        "containerCode": containerCode,
+                        "stationKey": stationKey,
+                        "detail": [
+                            {
+                                "arriveCode": "normal",
+                                "remarks": ""
+                            }
+                        ]
                     }
-    GetStationStatus = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/api/get_warehouse_station_list'
-    StationStatus = requests.post(GetStationStatus,headers=StationHeaders).json()
-    Station503 = WebDriverWait(driver,2).until(EC.visibility_of_element_located((By.XPATH,"(//*[text()='503'])[last()]/../..")))
-    print(Station503.is_enabled())
-    if Station503.is_enabled() == False :
-        if StationStatus['data'][2]['stationStatus'][1]['inUse'] == True :
-            RemoveStation = driver.find_element(By.XPATH,"//*[text()='強制移除']")
-            RemoveStation.click()
-            __OpenStaiton__()
-            __OpenStaiton__()
-        else:
-            Station503 = WebDriverWait(driver,2).until(EC.visibility_of_element_located((By.XPATH,"(//*[text()='503'])[last()]/../..")))
-            Station503.click()
-            OK = WebDriverWait(driver,2).until(EC.element_to_be_clickable((By.XPATH,"//*[text()='OK']")))
-            OK.click()
-    else:
-        print('Station Error')    
-    time.sleep(1)
-    StationEntryele = WebDriverWait(driver,5).until(EC.element_to_be_clickable((By.XPATH,"//*[text()='手動輸入']")))
-    StationEntryele.click()
-    InputBookingNumberEle = WebDriverWait(driver,5).until(EC.element_to_be_clickable((By.XPATH,'//input[@type="text"]')))
-    InputBookingNumberEle.click()
-    time.sleep(10)
+                ]
+            }
+    print(M5111Body)
+    M5111SendRequest = requests.post(M5111URL,json=M5111Body)
+    print(M5111SendRequest)
+    time.sleep(3)
+    TY11container = ""
+    TY12container = ""
+    TY14container = ""
+    for code in ToteList:
+        if str(code).startswith('11'):
+            TY11container += str(code) + ','
+        elif str(code).startswith('12'):
+            TY12container += str(code) + ','
+        elif str(code).startswith('14'):
+            TY14container += str(code) + ','
+    TY11container = TY11container.rstrip(',')
+    TY12container = TY12container.rstrip(',')
+    TY14container = TY14container.rstrip(',')
 
-
-
-
+    M5119URL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/wcs/empty_tote_out_report'
+    M5119Body = {
+                "msgTime": "2021-09-01T19:02:33.597+08:00",
+                "msgId": "e4ef9fee-d6de-4bcc-9a90-cb1e091a6092",
+                "data": [
+                    {
+                        "taskNo": "20230419-M14-8596d6ca99e24fafb",
+                        "isSuccess": True,
+                        "detail": [
+                            {
+                                "cellsNumber": 11,
+                                "containerCodes": TY11container,
+                                "errorCode": None,
+                                "remarks": None
+                            },
+                            {
+                                "cellsNumber": 12,
+                                "containerCodes": TY12container,
+                                "errorCode": None,
+                                "remarks": None
+                            },
+                            {
+                                "cellsNumber": 14,
+                                "containerCodes": TY12container,
+                                "errorCode": None,
+                                "remarks": None
+                            }
+                        ]
+                    }
+                ]
+            }
+    print(M5119Body)
+    M5119SendRequsets = requests.post(M5119URL,json=M5111Body).json()
+    print(M5119SendRequsets)

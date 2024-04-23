@@ -38,9 +38,10 @@ def __NewToteRegistration__(TY11 = 0,TY12 = 0,TY14 = 0):
         ToteRecordResponse = requests.get(ToteRecordURL,headers=headers).json()
         # BatchUploadURL = f'https://mix-{TestEnv.lower()}.hkmpcl.com.hk/hktv_mix/cms/inventory_tote/upload'
         registerTote = ToteRecordResponse['data']['list'][0]['toteCode']
-        __SingleRegisterTote__(registerTote, headers)
+        toteList = __SingleRegisterTote__(registerTote, headers)
     else :
         print(RegistrationResponse.json()['message'])
+    return toteList
 
 
 def __SingleRegisterTote__(ToteList,headers):
