@@ -1,4 +1,5 @@
 import requests
+import time
 from GlobalVar import *
 
 def __WMSLogin__():
@@ -10,21 +11,42 @@ def __WMSLogin__():
     }
     TokenResponse = requests.post(LoginURL,json=Payload).json()
     WMStoken = TokenResponse['data']['token']
+    print("WMSCMS login success")
     return WMStoken
+
+def __GetBookingNumber__(headers,page=1):
+    if page == 1 :
+        GetBookingNoURL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/cms/inventory_tote/booking/internal/tote_in?currentPage=1&pageSize=10&sort=bookingNo:asc&pageNo={page}'
+        GetBookingNoResponse = requests.get(GetBookingNoURL,headers=headers).json()
+        MaxPage = GetBookingNoResponse['data']['pagination']['totalPages']
+        return __GetBookingNumber__(headers,MaxPage)
+    else :
+        print("Search booking : " + str(page))
+        GetBookingNoURL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/cms/inventory_tote/booking/internal/tote_in?currentPage=1&pageSize=10&sort=bookingNo:asc&pageNo={page}'
+        GetBookingNoResponse = requests.get(GetBookingNoURL,headers=headers).json()
+        print(GetBookingNoResponse)
+        BookingNumber = GetBookingNoResponse['data']['bookings'][-1]['bookingNo']
+        return BookingNumber
 
 def __CreateInternalToteInBooking__(ToteList):
     CreateBookingURL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/cms/inventory_tote/internal/booking'
     Payload = {"toteCodes": ToteList}
     headers = {'Authorization' : f'Bearer {WMStoken}'}
-    BookingResponse = requests.post(CreateBookingURL,json=Payload,headers=headers).json()
-    print(BookingResponse)
-    MaxPage = 1
-    GetBookingNoURL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/cms/inventory_tote/booking/internal/tote_in?currentPage=1&pageSize=10&sort=bookingNo:asc&pageNo={MaxPage}'
-    GetBookingNoResponse = requests.get(GetBookingNoURL,headers=headers).json()
-    MaxPage = GetBookingNoResponse['data']['pagination']['totalPages']
-    GetBookingNoResponse = requests.get(GetBookingNoURL,headers=headers).json()
-    BookingNumber = GetBookingNoResponse['data']['bookings'][-1]
-    return BookingNumber
+    retry = 0
+    while retry < 4:
+        BookingResponse = requests.post(CreateBookingURL, json=Payload, headers=headers)
+        if BookingResponse.status_code == 200:
+            BookingNumber = __GetBookingNumber__(headers)
+            print(BookingNumber)
+            return BookingNumber
+        
+        elif BookingResponse.status_code == 5043:
+            print("Create internal tote-in booking failed, trying again after 2 seconds...")
+            retry += 1
+            time.sleep(2)
+        else:
+            print("Create internal tote-in booking failed")
+            break  
 
 
 def __InternalToteInAPI__(BookingNumber,StationKey,ToteList):
@@ -32,22 +54,25 @@ def __InternalToteInAPI__(BookingNumber,StationKey,ToteList):
     TaskNoResponse = requests.get(GetTaskNoURL).json()
     TaskNo = TaskNoResponse['responseData'][0]['taskNo']
     print("Get Internal Tote in Task no. " + TaskNo)
-    containerCode = ','.join(map(str, ToteList))
-    M5102URL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/wcs/tote_in_status_report'
-    M5102Body = {
-                "msgTime": "2022-11-01T19:02:33.597+08:00",
-                "msgId": "e4ef9fee-d6de-4bcc-9a90-cb1e091a6092",
-                "data": [
-                {
-                    "stationKey": StationKey,
-                    "taskNo": TaskNo,
-                    "containerCode": containerCode,
-                    "weight": 100,
-                    "success": True,
-                    "errorCode": "",
-                    "remarks": ""
+    time.sleep(2)
+    for tote in ToteList :
+        print(tote)
+        time.sleep(0.05)
+        M5102URL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/wcs/tote_in_status_report'
+        M5102Body = {
+                    "msgTime": "2022-11-01T19:02:33.597+08:00",
+                    "msgId": "e4ef9fee-d6de-4bcc-9a90-cb1e091a6092",
+                    "data": [
+                    {
+                        "stationKey": StationKey,
+                        "taskNo": TaskNo,
+                        "containerCode": tote,
+                        "weight": 100,
+                        "success": True,
+                        "errorCode": "",
+                        "remarks": ""
+                    }
+                    ]
                 }
-                ]
-            }
-    M5102SendRequsets = requests.post(M5102URL,json=M5102Body).json()
-    print(M5102SendRequsets)
+        M5102SendRequsets = requests.post(M5102URL,json=M5102Body).json()
+        print(M5102SendRequsets)
