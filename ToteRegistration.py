@@ -32,6 +32,7 @@ def __NewToteRegistration__(TY11 = 0,TY12 = 0,TY14 = 0):
     cur.execute("SELECT MIXtoken FROM `3PL_Var_Table` WHERE ID = 1")
     Result = cur.fetchone()
     MIXtoken = Result[0]
+    TotalTotes = TY11 + TY12 + TY14
     RegistrationURL = f'https://mix-{TestEnv.lower()}.hkmpcl.com.hk/hktv_mix/cms/inventory_tote/totes'
     headers = {'Authorization' : f'Bearer {MIXtoken}'}
     GenerateTote = {
@@ -42,10 +43,16 @@ def __NewToteRegistration__(TY11 = 0,TY12 = 0,TY14 = 0):
     RegistrationResponse = requests.post(RegistrationURL,json=GenerateTote,headers=headers)
     if RegistrationResponse.status_code == 200 :
         print("Generate tote : " + RegistrationResponse.json()['message'])
-        ToteRecordURL = f'https://mix-{TestEnv.lower()}.hkmpcl.com.hk/hktv_mix/cms/inventory_tote/totes/history?pageNo=1&pageSize=10&'
-        ToteRecordResponse = requests.get(ToteRecordURL,headers=headers).json()
-        # BatchUploadURL = f'https://mix-{TestEnv.lower()}.hkmpcl.com.hk/hktv_mix/cms/inventory_tote/upload'
-        registerTote = ToteRecordResponse['data']['list'][0]['toteCode']
+        retry = 0
+        while True :
+            ToteRecordURL = f'https://mix-{TestEnv.lower()}.hkmpcl.com.hk/hktv_mix/cms/inventory_tote/totes/history?pageNo=1&pageSize=10&'
+            ToteRecordResponse = requests.get(ToteRecordURL,headers=headers).json()
+            registerTote = ToteRecordResponse['data']['list'][0]['toteCode']
+            if len(registerTote) == TotalTotes or retry > 3:
+                break
+            else:
+                retry += 1
+                print("Get wrong generate tote record , retry...")
         ToteList_str = json.dumps(__SingleRegisterTote__(registerTote, headers))
         cur.execute(f"UPDATE `3PL_Var_Table` SET `NewRegisterToteList` = ? WHERE ID = 1", (ToteList_str,))
         conn.commit()

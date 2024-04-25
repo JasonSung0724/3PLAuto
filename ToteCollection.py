@@ -1,10 +1,8 @@
-import requests
+import requests , json
 from GlobalVar import *
 import time
-from StationFlow import __KIOSKFlow__
 
 def __MMSlogin__(MMSAccount,MMSPasword):
-    global MMStoken
     Login_url = f'https://mms-user-{TestEnv.lower()}.hkmpcl.com.hk/user/login/merchantAppLogin2'
     login_request_body = {
         "password": MMSPasword,
@@ -12,10 +10,14 @@ def __MMSlogin__(MMSAccount,MMSPasword):
     }
     MMSTokenresponse = requests.post(Login_url , json=login_request_body)
     AccessToken = MMSTokenresponse.json()['accessToken']
-    MMStoken = AccessToken
+    cur.execute(f"UPDATE `3PL_Var_Table` SET `MMStoken` = '{AccessToken}' WHERE ID = 1")
     return AccessToken
 
 def __CreateCollectionBooking__(TY11=0,TY12=0,TY14=0):
+    cur.execute("SELECT MMStoken FROM `3PL_Var_Table` WHERE ID = 1")
+    Result = cur.fetchone()
+    MMStoken = Result[0]
+    conn.commit()
     headers = {
                 'Authorization' : f'Bearer {MMStoken}'
             }
@@ -58,13 +60,12 @@ def __CreateCollectionBooking__(TY11=0,TY12=0,TY14=0):
                             }
     CreateCollectionAPI = f'https://tpl-mms-{TestEnv.lower()}.hkmpcl.com.hk/hktv3plmms/tote/collection'
     CollectionBooking = requests.post(CreateCollectionAPI,json=CreateCollectionBody,headers=headers)
-    print(CollectionBooking)
     if CollectionBooking.status_code == 201 :
         print('Create collection booking success')
         GetBookingNumber = f'https://tpl-mms-{TestEnv.lower()}.hkmpcl.com.hk/hktv3plmms/tote/collection?sort=collectionId&sortType=DESC&pageSize=10&page=1'
         BookingRecord = requests.get(GetBookingNumber,headers=headers).json()
         BookingNumber = BookingRecord['content'][0]['collectionId']
-        __KIOSKFlow__(BookingNumber)
+        return BookingNumber
     else:
         print('Create collection booking fail')
         
@@ -112,12 +113,12 @@ def __CollectionAPI__(BookingNumber,stationKey,ToteList):
     TY14container = TY14container.rstrip(',')
 
     M5119URL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/wcs/empty_tote_out_report'
-    M5119Body = {
+    M5119Body = json.dumps({
                 "msgTime": "2021-09-01T19:02:33.597+08:00",
                 "msgId": "e4ef9fee-d6de-4bcc-9a90-cb1e091a6092",
                 "data": [
                     {
-                        "taskNo": "20230419-M14-8596d6ca99e24fafb",
+                        "taskNo": TaskNo,
                         "isSuccess": True,
                         "detail": [
                             {
@@ -134,14 +135,15 @@ def __CollectionAPI__(BookingNumber,stationKey,ToteList):
                             },
                             {
                                 "cellsNumber": 14,
-                                "containerCodes": TY12container,
+                                "containerCodes": TY14container,
                                 "errorCode": None,
                                 "remarks": None
                             }
                         ]
                     }
                 ]
-            }
+            })
+    APIheaders = {"Content-Type" : "application/json"}
     print(M5119Body)
-    M5119SendRequsets = requests.post(M5119URL,json=M5111Body).json()
+    M5119SendRequsets = requests.post(M5119URL,data=M5119Body,headers=APIheaders).json()
     print(M5119SendRequsets)

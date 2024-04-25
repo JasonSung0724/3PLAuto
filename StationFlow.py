@@ -1,4 +1,4 @@
-import requests
+import requests , json
 from GlobalVar import *
 import time
 from selenium import webdriver
@@ -8,7 +8,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import TimeoutException
 from internalToteIn import __InternalToteInAPI__
-
+from ToteCollection import __CollectionAPI__
 driver = ''
 
 def __CheckServiceType__(BookingNumber,StationKey):
@@ -35,17 +35,20 @@ def __CheckServiceType__(BookingNumber,StationKey):
     print("Sevice type : " + ServiceType + ", Station : " + StationKey)
     return ServiceType
 
-def __StationDone__():
-    DoneButton = driver.find_element(By.XPATH,'//*[text()="投箱完成"]')
-    DoneButton.click()
+#完成API後退出Station Flow
+def __StationDone__(StationKey):
+    if str(StationKey).startswith("1"):
+        DoneButton = driver.find_element(By.XPATH,'//*[text()="投箱完成"]')
+        DoneButton.click()
+        time.sleep(1)
     ConfirmButton = WebDriverWait(driver,3).until(EC.visibility_of_element_located((By.XPATH,'//*[text()="確認"]')))
     ConfirmButton.click()
-    ConfirmButton = WebDriverWait(driver,10).until(EC.visibility_of_element_located((By.XPATH,'//*[text()="確認"]')))
-    ConfirmButton.click()
+    time.sleep(1)
     WebDriverWait(driver,10).until(EC.visibility_of_element_located((By.XPATH,'//*[text()="請點擊確認返回首頁或等待自動跳轉。"]')))
     ConfirmButton = driver.find_element(By.XPATH,'//*[text()="確 認"]')
     ConfirmButton.click()
     time.sleep(2)
+    
 
 
 def __OpenStaiton__(StationKey):
@@ -53,18 +56,22 @@ def __OpenStaiton__(StationKey):
     Station.click()
     OK = WebDriverWait(driver,10).until(EC.element_to_be_clickable((By.XPATH,"//*[text()='OK']")))
     OK.click()
+    
 
 def __KIOSKFlow__(BookingNumber,StationKey,ToteList=None):
     global driver , NewRegisterToteList
     ServiceType = __CheckServiceType__(BookingNumber,StationKey)
     chrome_options = webdriver.ChromeOptions()
-    chrome_options.add_argument('--start-maximized')
-    chrome_options.add_argument("--disable-notifications")
-    chrome_options.add_argument("--use-fake-ui-for-media-stream")
+    chrome_options.add_argument('--start-maximized') #瀏覽器最大Size
+    chrome_options.add_argument("--disable-notifications") #禁止通知
+    chrome_options.add_argument("--use-fake-ui-for-media-stream") #禁止錄影提示視窗
+    chrome_options.add_argument('--disable-print-preview') #禁止列印彈出視窗
     driver = webdriver.Chrome(options=chrome_options)
     SelectStation = f'https://mwms-kiosk-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/selectStation'
     driver.get(SelectStation)
     Station = WebDriverWait(driver,5).until(EC.visibility_of_element_located((By.XPATH,f"(//*[text()='{StationKey}'])[last()]/../..")))
+    NotificationBarDisable = driver.find_element(By.XPATH,'//*[@class="ant-notification ant-notification-topRight"]')
+    driver.execute_script("arguments[0].style.display='none';", NotificationBarDisable) 
     if Station.is_enabled() == False :
         RemoveStation = driver.find_element(By.XPATH,"//*[text()='強制移除']")
         RemoveStation.click()
@@ -83,34 +90,46 @@ def __KIOSKFlow__(BookingNumber,StationKey,ToteList=None):
             WebDriverWait(driver,30).until(EC.visibility_of_element_located((By.XPATH,'//*[text()="請將箱子放置於輸送帶。"]')))
             if ServiceType == "Internal Tote-in" :
                 __InternalToteInAPI__(BookingNumber,StationKey,ToteList)
+                driver.refresh()
                 time.sleep(2)
-                __StationDone__()
+                __StationDone__(StationKey)
+                driver.quit()
                 return
         except TimeoutException:
             try :
                 StationStatus = WebDriverWait(driver,30).until(EC.visibility_of_element_located((By.XPATH,'//*[text()="請將箱子放置於輸送帶。"]')))
                 if ServiceType == "Internal Tote-in" :
-                    print(NewRegisterToteList)
-                    __InternalToteInAPI__(BookingNumber,StationKey,NewRegisterToteList)
+                    __InternalToteInAPI__(BookingNumber,StationKey,ToteList)
                     time.sleep(2)
-                    __StationDone__()
+                    __StationDone__(StationKey)
+                    driver.quit()
                     return
             except TimeoutException:
-                print(StationKey + " Error")
+                print(StationKey + "Station flow error")
     # 503 or 751 station
     elif StationKey == "503" or StationKey == "751" :
-        print(f"Try to open {StationKey}")
-        __InputBookingNoEnterStation__(BookingNumber)
+        print(f"Open {StationKey}")
+        try :
+            __InputBookingNoEnterStation__(BookingNumber)
+        except :
+            __503StuckOrderHandle__()
+            __InputBookingNoEnterStation__(BookingNumber)
         try :
             WebDriverWait(driver,10).until(EC.visibility_of_element_located((By.XPATH,"//*[text()='空箱送出中，請稍候。']")))
+            time.sleep(2)
+            __CollectionAPI__(BookingNumber,StationKey,ToteList)
+            time.sleep(2)
+            __StationDone__(StationKey)
+            driver.quit()
         except TimeoutException :
             print("Station occurs error, Please check")
      # 505 or 752 station
     elif StationKey == "505" or StationKey == "752" :
-        print(f"Try to open {StationKey}")
+        print(f"Open {StationKey}")
         __InputBookingNoEnterStation__(BookingNumber)
         try :
             WebDriverWait(driver,10).until(EC.visibility_of_element_located((By.XPATH,"//*[text()='貨箱送出中，請稍候。']")))
+            
         except TimeoutException :
             print("Station occurs error, Please check")
 
@@ -142,3 +161,51 @@ def __InputBookingNoEnterStation__(BookingNumber):
         Confirm.click()
     else :
         pass
+
+# 卡單處理，無條件清空頁面並重啟
+def __503StuckOrderHandle__():
+    StationKey = "503"
+    StuckOrder = driver.find_element(By.XPATH,'//*[@class="storybook-navtab-bookingNo storybook-navtab-clicked pt-2"]')
+    StuckOrderBookingNumber = StuckOrder.text
+    print("Stuck order : " + StuckOrderBookingNumber)
+    GetTaskNoURL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/task_number/get_task_number?serviceType=TOTE_COLLECTION&bookingNo={StuckOrderBookingNumber}'
+    TaskNoResponse = requests.get(GetTaskNoURL).json()
+    TaskNo = TaskNoResponse['responseData'][0]['taskNo']
+    print("Get Collection Task no. " + TaskNo)
+    M5119URL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/wcs/empty_tote_out_report'
+    M5119Body = json.dumps({
+                "msgTime": "2021-09-01T19:02:33.597+08:00",
+                "msgId": "e4ef9fee-d6de-4bcc-9a90-cb1e091a6092",
+                "data": [
+                    {
+                        "taskNo": TaskNo,
+                        "isSuccess": True,
+                        "detail": [
+                            {
+                                "cellsNumber": 11,
+                                "containerCodes": "",
+                                "errorCode": None,
+                                "remarks": None
+                            },
+                            {
+                                "cellsNumber": 12,
+                                "containerCodes": "",
+                                "errorCode": None,
+                                "remarks": None
+                            },
+                            {
+                                "cellsNumber": 14,
+                                "containerCodes": "",
+                                "errorCode": None,
+                                "remarks": None
+                            }
+                        ]
+                    }
+                ]
+            })
+    APIheaders = {"Content-Type" : "application/json"}
+    print(M5119Body)
+    M5119SendRequsets = requests.post(M5119URL,data=M5119Body,headers=APIheaders).json()
+    print(M5119SendRequsets)
+    driver.refresh()
+    __StationDone__(StationKey)
