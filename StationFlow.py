@@ -59,7 +59,7 @@ def __OpenStaiton__(StationKey):
     
 
 def __KIOSKFlow__(BookingNumber,StationKey,ToteList=None):
-    global driver , NewRegisterToteList
+    global driver
     ServiceType = __CheckServiceType__(BookingNumber,StationKey)
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument('--start-maximized') #瀏覽器最大Size

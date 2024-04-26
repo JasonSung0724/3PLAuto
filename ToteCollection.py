@@ -69,11 +69,20 @@ def __CreateCollectionBooking__(TY11=0,TY12=0,TY14=0):
     else:
         print('Create collection booking fail')
         
-
+# 待修改，註冊且InternalToteIn後容易發生預定數量和實際入倉數量不符的問題
+# 利用InternalToteIn的Tote容易導致Collection到沒有成功入倉的箱子
 def __CollectionAPI__(BookingNumber,stationKey,ToteList):
     GetTaskNoURL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/task_number/get_task_number?serviceType=TOTE_COLLECTION&bookingNo={BookingNumber}'
     TaskNoResponse = requests.get(GetTaskNoURL).json()
+    conn.execute("SELECT WMStoken FROM `3PL_Var_Table` WHERE ID = 1")
+    WMStokenResult = cur.fetchone()
+    WMStoken = WMStokenResult[0]
+    conn.commit()
+    WMSheaders = {'Authorization' : f'Bearer {WMStoken}'}
     TaskNo = TaskNoResponse['responseData'][0]['taskNo']
+    GetTotesURL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/cms/inventory_tote?pageNo=5&pageSize=10&sort=toteCode:asc&status=Available+for+rent&warehouseCode=TY3F&toteType={CompartmentType}&locationType=In+System'
+    GetToteResponse = requests.get(GetTotesURL,headers=WMSheaders).json()
+    TotesRecord = GetToteResponse['data']['totes']
     print("Get Collection Task no. " + TaskNo)
     containerCode = ','.join(map(str, ToteList))
     M5111URL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/wcs/tote_location_report'

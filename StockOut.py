@@ -245,6 +245,6 @@ def __WeigthCheck__(BookingNumber):
 
 
 
-__StockOutAPI__("SOTY3F00001036")
-# __CycleCount__('SOTY3F00000664')
+__StockOutAPI__("SOTY3F00001034")
+
 

@@ -6,14 +6,15 @@ from internalToteIn import __WMSLogin__ , __InternalToteInAPI__ , __CreateIntern
 import sqlite3
 import time
 
-
-__TPLCMSlogin__()
-__WMSLogin__()
-totelist = __NewToteRegistration__(5,5,5)
-bookingNumber = __CreateInternalToteInBooking__(totelist)
-stationKey = '105'
-__KIOSKFlow__(bookingNumber,stationKey,totelist)
-__MMSlogin__(MMSAccount,MMSPasword)
-BookingNumber = __CreateCollectionBooking__(5,5,5)
-__KIOSKFlow__(BookingNumber,'503',totelist)
-time.sleep(10)
+def __InternalToteInAndToteCollection__(TY11=0,TY12=0,TY14=0):
+    __TPLCMSlogin__()
+    __WMSLogin__()
+    totelist = __NewToteRegistration__(TY11,TY12,TY14)
+    bookingNumber = __CreateInternalToteInBooking__(totelist)
+    stationKey = '105'
+    __KIOSKFlow__(bookingNumber,stationKey,totelist)
+    __MMSlogin__(MMSAccount,MMSPasword)
+    BookingNumber = __CreateCollectionBooking__(TY11,TY12,TY14)
+    __KIOSKFlow__(BookingNumber,'503',totelist)
+    time.sleep(3)
+__InternalToteInAndToteCollection__(2)
