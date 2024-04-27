@@ -19,7 +19,7 @@ def __StockOutAPI__(BookingNumber):
 
 def __GetBookingInfo__(BookingNumber):
     GetStockOutInfoURL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/cms/tote/booking_job/tote_record?bookingType=Stock+Out&bookingNo={BookingNumber}&pageNo=1&pageSize=100'
-    conn.execute("SELECT WMStoken FROM `Var_3PL_Table` WHERE ID = 1")
+    cur.execute("SELECT WMStoken FROM `Var_3PL_Table` WHERE ID = 1")
     WMStokenResult = cur.fetchone()
     WMStoken = WMStokenResult[0]
     conn.commit()
@@ -119,7 +119,7 @@ def __ConsolidationTaskHandle__(BookingNumber):
 
 def __GetTotes__(CompartmentType, TotesQty):
     # 獲取Tote , 條件(Available for rent , In System , TY3F)
-    conn.execute("SELECT WMStoken FROM `Var_3PL_Table` WHERE ID = 1")
+    cur.execute("SELECT WMStoken FROM `Var_3PL_Table` WHERE ID = 1")
     WMStokenResult = cur.fetchone()
     WMStoken = WMStokenResult[0]
     conn.commit()
@@ -138,7 +138,7 @@ def __GetTotes__(CompartmentType, TotesQty):
 
 def __GetSKUinfo__(uuid):
     URL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/cms/sku_inventory?pageNo=1&pageSize=10&skuUuid={uuid}&sort=skuUuid:desc'
-    conn.execute("SELECT WMStoken FROM `Var_3PL_Table` WHERE ID = 1")
+    cur.execute("SELECT WMStoken FROM `Var_3PL_Table` WHERE ID = 1")
     WMStokenResult = cur.fetchone()
     WMStoken = WMStokenResult[0]
     conn.commit()

@@ -5,9 +5,6 @@ import time
 from datetime import datetime, timedelta
 
 
-WMStoken = ''
-
-
 def __MMSlogin__(MMSAccount, MMSPasword):
     Login_url = f'https://mms-user-{TestEnv.lower()}.hkmpcl.com.hk/user/login/merchantAppLogin2'
     login_request_body = {
@@ -90,15 +87,15 @@ def __CollectionAPI__(BookingNumber, stationKey):
     TY14 = CheckDict[BookingNumber]['TY14']
     ToteList = []
     if TY11 != 0:
-        TY11ToteList = __GetTotes__("TY11", TY11)
+        TY11ToteList = __CollectionGetTotes__("TY11", TY11)
         for TY11tote in TY11ToteList:
             ToteList.append(TY11tote)
     if TY12 != 0:
-        TY12ToteList = __GetTotes__("TY12", TY12)
+        TY12ToteList = __CollectionGetTotes__("TY12", TY12)
         for TY12tote in TY12ToteList:
             ToteList.append(TY12tote)
     if TY14 != 0:
-        TY14ToteList = __GetTotes__("TY14", TY14)
+        TY14ToteList = __CollectionGetTotes__("TY14", TY14)
         for TY14tote in TY14ToteList:
             ToteList.append(TY14tote)
     print(ToteList)
@@ -106,29 +103,29 @@ def __CollectionAPI__(BookingNumber, stationKey):
     TaskNoResponse = requests.get(GetTaskNoURL).json()
     TaskNo = TaskNoResponse['responseData'][0]['taskNo']
     print("Get Collection Task no. " + TaskNo)
-    containerCode = ','.join(map(str, ToteList))
     M5111URL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/wcs/tote_location_report'
-    M5111Body = {
-        "msgTime": "2021-09-01T19:02:33.597+08:00",
-        "msgId": "e4ef9fee-d6de-4bcc-9a90-cb1e091a6092",
-        "data": [
-            {
-                "taskNo": TaskNo,
-                "containerCode": containerCode,
-                "stationKey": stationKey,
-                "detail": [
-                    {
-                        "arriveCode": "normal",
-                        "remarks": ""
-                    }
-                ]
-            }
-        ]
-    }
-    print(M5111Body)
-    M5111SendRequest = requests.post(M5111URL, json=M5111Body)
-    print(M5111SendRequest)
-    time.sleep(3)
+    for perTote in ToteList:
+        M5111Body = {
+            "msgTime": "2021-09-01T19:02:33.597+08:00",
+            "msgId": "e4ef9fee-d6de-4bcc-9a90-cb1e091a6092",
+            "data": [
+                {
+                    "taskNo": TaskNo,
+                    "containerCode": str(perTote),
+                    "stationKey": stationKey,
+                    "detail": [
+                        {
+                            "arriveCode": "normal",
+                            "remarks": ""
+                        }
+                    ]
+                }
+            ]
+        }
+        print(M5111Body)
+        M5111SendRequest = requests.post(M5111URL, json=M5111Body)
+        print(M5111SendRequest)
+    time.sleep(2)
     TY11container = ""
     TY12container = ""
     TY14container = ""
@@ -187,10 +184,15 @@ def __GetCollectionBookingInfo__(BookingNumber):
     StartDateTime = StartTime.strftime("%Y-%m-%dT%H:%M:%S.000Z")
     EndTime = Current + timedelta(days=7)
     EndDateTime = EndTime.strftime("%Y-%m-%dT%H:%M:%S.000Z")
+    cur.execute("SELECT WMStoken FROM `Var_3PL_Table` WHERE ID = 1")
+    WMStokenResult = cur.fetchone()
+    print(WMStokenResult)
+    WMStoken = WMStokenResult[0]
+    conn.commit()
     GetURL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/cms/tote/booking_job?startTimestamp={StartDateTime}&endTimestamp={EndDateTime}&bookingType=Tote+Collect&pageNo=1&pageSize=30'
     WMSheaders = {'Authorization': f'Bearer {WMStoken}'}
-    print(GetURL)
     Response = requests.get(GetURL, headers=WMSheaders).json()
+    print(Response)
     BookingList = Response['data']['bookingDetails']
     BookingDict = {}
     for booking in BookingList:
@@ -208,9 +210,9 @@ def __GetCollectionBookingInfo__(BookingNumber):
     print(f"Can not found booking info : {BookingNumber}")
 
 
-def __GetTotes__(CompartmentType, TotesQty):
+def __CollectionGetTotes__(CompartmentType, TotesQty):
     # 獲取Tote , 條件(Available for rent , In System , TY3F)
-    conn.execute("SELECT WMStoken FROM `Var_3PL_Table` WHERE ID = 1")
+    cur.execute("SELECT WMStoken FROM `Var_3PL_Table` WHERE ID = 1")
     WMStokenResult = cur.fetchone()
     WMStoken = WMStokenResult[0]
     conn.commit()
@@ -220,8 +222,7 @@ def __GetTotes__(CompartmentType, TotesQty):
     TotesRecord = GetToteResponse['data']['totes']
     ToteList = []
     for i in range(TotesQty):
-        ToteList.append(
-            {"ToteCode": TotesRecord[len(TotesRecord)-i-1]['toteCode'], "count": 1})
+        ToteList.append(TotesRecord[len(TotesRecord)-i-1]['toteCode'])
     # 找第一頁 size 200 開始倒數抓需要的tote數量
     print(ToteList)
     return ToteList
