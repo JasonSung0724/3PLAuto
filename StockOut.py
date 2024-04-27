@@ -117,13 +117,13 @@ def __ConsolidationTaskHandle__(BookingNumber):
 def __GetTotes__(CompartmentType,TotesQty):
     # 獲取Tote , 條件(Available for rent , In System , TY3F)
     WMSheaders = {'Authorization' : f'Bearer {WMStoken}'}
-    GetTotesURL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/cms/inventory_tote?pageNo=5&pageSize=10&sort=toteCode:asc&status=Available+for+rent&warehouseCode=TY3F&toteType={CompartmentType}&locationType=In+System'
+    GetTotesURL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/cms/inventory_tote?pageNo=1&pageSize=200&sort=toteCode:asc&status=Available+for+rent&warehouseCode=TY3F&toteType={CompartmentType}&locationType=In+System'
     GetToteResponse = requests.get(GetTotesURL,headers=WMSheaders).json()
     TotesRecord = GetToteResponse['data']['totes']
     ToteList = []
     for i in range(TotesQty) :
-        ToteList.append({"ToteCode" : TotesRecord[i]['toteCode'],"count": 1})
-    #該作法只能最多抓一頁的10個箱子，若需要抓超過10個箱子會導致後面邏輯錯誤
+        ToteList.append({"ToteCode" : TotesRecord[len(TotesRecord)-i-1]['toteCode'],"count": 1})
+    #找第一頁 size 200 開始倒數抓需要的tote數量
     print(ToteList)
     return ToteList
 
