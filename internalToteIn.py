@@ -43,32 +43,36 @@ def __CreateInternalToteInBooking__(ToteList):
     retry = 0
     while retry < 4:
         BookingResponse = requests.post(
-            CreateBookingURL, json=Payload, headers=headers)
-        if BookingResponse.status_code == 200:
+            CreateBookingURL, json=Payload, headers=headers).json()
+        if BookingResponse['status'] == 200:
             BookingNumber = __GetBookingNumber__(headers)
             print(BookingNumber)
             return BookingNumber
 
-        elif BookingResponse.status_code == 5043:
+        elif BookingResponse['status'] == 5043 and retry > 3:
             print(
                 "Create internal tote-in booking failed, trying again after 2 seconds...")
             retry += 1
             time.sleep(2)
         else:
             print("Create internal tote-in booking failed")
-            break
+            return BookingResponse['message']
 
 
 def __InternalToteInAPI__(BookingNumber, StationKey, ToteList):
+    print(f'Booking Number : {BookingNumber} , StationKey : {StationKey}')
+    print("Tote List")
+    print(ToteList)
     time.sleep(2)
     GetTaskNoURL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/task_number/get_task_number?serviceType=TOTE_RETURN&bookingNo={BookingNumber}'
     TaskNoResponse = requests.get(GetTaskNoURL).json()
     TaskNo = TaskNoResponse['responseData'][0]['taskNo']
     print("Get Internal Tote in Task no. " + TaskNo)
+    APIheaders = {"Content-Type": "application/json"}
     time.sleep(2)
     for tote in ToteList:
         print(tote)
-        time.sleep(1)
+        time.sleep(3)
         M5102URL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/wcs/tote_in_status_report'
         M5102Body = {
             "msgTime": "2022-11-01T19:02:33.597+08:00",
@@ -78,7 +82,7 @@ def __InternalToteInAPI__(BookingNumber, StationKey, ToteList):
                     "stationKey": StationKey,
                     "taskNo": TaskNo,
                     "containerCode": tote,
-                    "weight": 100,
+                    "weight": 3000,
                     "success": True,
                     "errorCode": "",
                     "remarks": ""
@@ -86,5 +90,6 @@ def __InternalToteInAPI__(BookingNumber, StationKey, ToteList):
             ]
         }
         print(M5102Body)
-        M5102SendRequsets = requests.post(M5102URL, json=M5102Body).json()
+        M5102SendRequsets = requests.post(
+            M5102URL, json=M5102Body, headers=APIheaders).json()
         print(M5102SendRequsets)
