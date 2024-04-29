@@ -267,4 +267,4 @@ def __WeigthCheck__(BookingNumber):
         return False
 
 
-__StockOutAPI__("SOTY3F00001034")
+# __StockOutAPI__("SOTY3F00001034")

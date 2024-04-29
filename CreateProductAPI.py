@@ -1,32 +1,23 @@
-import wx
+import wx , os , json ,sys
 import requests
 from datetime import datetime
-import json
-import os
-import sys
-
-
-current_dir = os.path.dirname(os.path.abspath(__file__))
-config_file_path = os.path.join(current_dir, 'SettingVariable.json')
-with open(config_file_path, 'r') as f:
-    SettingVariable = json.load(f)
 
 env = 'dev'
-Account = SettingVariable['Account']
-Password = SettingVariable['Password']
-Creator = SettingVariable['Creator']
-ProductTypeCode = SettingVariable['ProductTypeCode']
-ImageURL = SettingVariable['ImageURL']
-OnlineStatus = SettingVariable['OnlineStatus']
-visibility = SettingVariable['visibility']
-IsPrimary = SettingVariable['IsPrimary']
-currency = SettingVariable['currency']
-OriginalPrice = SettingVariable['OriginalPrice']
-SellingPrice = SettingVariable['SellingPrice']
-PackingHeight = SettingVariable['PackingHeight']
-PackingLength = SettingVariable['PackingLength']
-PackingWidth = SettingVariable['PackingWidth']
-weight = SettingVariable['weight']
+Account = "cindy.yeh@shoalter.com"
+Password = "Aa123456"
+Creator = "Jason"
+ProductTypeCode = "AA11031500001"
+ImageURL = "https://mms-dyn-image-server-dev.hkmpcl.com.hk/hktv/mms/uploadProductImage/0405/d595/e538/PPAwMlztdP20231031163931.jpg"
+OnlineStatus = "ONLINE"
+visibility = "Y"
+IsPrimary = "Y"
+currency = "HKD"
+OriginalPrice = 100
+SellingPrice = 90
+PackingHeight = 10
+PackingLength = 10
+PackingWidth = 10
+weight = 10
 ReturnDays = "0"
 headers = ""
 AccessToken = ""
@@ -183,16 +174,19 @@ class CreateProduct(wx.Frame):
         CreateProductbtn.Bind(wx.EVT_BUTTON, self.Save_Product_Button)
         self.ENVButton = wx.ToggleButton(panel, label="DEV" , pos = (250,10) ,size=(120,30) )
         self.ENVButton.Bind(wx.EVT_TOGGLEBUTTON, self.ENV_Setting)
+        
     def ENV_Setting(self ,event):
         global env
         if self.ENVButton.GetValue():
             self.ENVButton.SetLabel("STAGING")
             env = 'staging'
             print(env)
+            self.SetStatusText(f"ENV set to {env}")
         else:
             self.ENVButton.SetLabel("DEV")
             env = 'dev'
-        self.SetStatusText(f"ENV set to {env}")
+            print(env)
+            self.SetStatusText(f"ENV set to {env}")
     def Select_Return_Days(self , event):
         global ReturnDays
         if self.ReturnDaysOption.GetStringSelection() :

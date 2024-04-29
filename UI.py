@@ -6,8 +6,7 @@ from CreateProductAPI import CreateProduct
 from InternalAndCollectionUI import InternalAndCollection
 from OnlyInternalToteInAPI import OnlyInternalAPI
 from OnlyCollectionAPI import CollectionAPI
-
-BookingNumber = ''
+from GlobalVar import *
 
 
 # def Set_Text_Value(self, event):
@@ -17,18 +16,20 @@ BookingNumber = ''
 
 class ServiceSelectionFrame(wx.Frame):
     def __init__(self):
-        super().__init__(parent=None, title="3PL service", size=(250, 380))
+        super().__init__(parent=None, title="3PL service", size=(240, 400))
         self.CreateStatusBar()
         font = wx.Font(12, wx.FONTFAMILY_DEFAULT,
                        wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
         self.GetStatusBar().SetFont(font)
         panel = wx.Panel(self)
+        self.ENVButton = wx.ToggleButton(panel, label="DEV", pos=(10, 250), size=(205, 80))
+        self.ENVButton.Bind(wx.EVT_TOGGLEBUTTON, self.ENV_Setting)
         # self.BookingNumber_label = wx.StaticText(panel, label="Booking Number : ", pos=(15, 23))
         # self.BookingNumber_text = wx.TextCtrl(panel, value = BookingNumber , pos=(150, 20), size=(300, -1))
         # self.BookingNumber_text.Bind(wx.EVT_TEXT, self.Set_Text_Value)
 
         self.Option1_radio = wx.RadioButton(
-            panel, label='Only internal tote-in API', style=wx.RB_GROUP)
+            panel, label='Only internal tote-in API')
         self.Option2_radio = wx.RadioButton(
             panel, label='Internal tote-in + Tote collection')
         self.Option3_radio = wx.RadioButton(
@@ -64,6 +65,7 @@ class ServiceSelectionFrame(wx.Frame):
         sizer.Add(self.Option7_radio, 0, wx.ALL | wx.EXPAND, 10)
         panel.SetSizer(sizer)
         self.current_frame = None
+        
 
     def on_select_service(self, event):
         selected_service = event.GetEventObject().GetLabel()
@@ -80,6 +82,19 @@ class ServiceSelectionFrame(wx.Frame):
         if self.current_frame:
             self.current_frame.Show()
 
+    def ENV_Setting(self ,event):
+        global TestEnv
+        if self.ENVButton.GetValue():
+            self.ENVButton.SetLabel("STAGING")
+            TestEnv = 'staging'
+            print(TestEnv)
+            self.SetStatusText(f"ENV set to {TestEnv}")
+        else:
+            self.ENVButton.SetLabel("DEV")
+            TestEnv = 'dev'
+            print(TestEnv)
+            self.SetStatusText(f"ENV set to {TestEnv}")
+        
 
 class InternalToteIn(wx.Frame):
     def __init__(self):

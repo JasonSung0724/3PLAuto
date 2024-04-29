@@ -15,7 +15,7 @@ GetTotes = ''
 class OnlyInternalAPI(wx.Frame):
 
     def __init__(self):
-        super().__init__(parent=None, title='Only internal Tote-in API', size=(400, 200))
+        super().__init__(parent=None, title='Only internal Tote-in API', size=(400, 220))
         panel = wx.Panel(self)
         self.CreateStatusBar()
         font = wx.Font(12, wx.FONTFAMILY_DEFAULT,
@@ -36,27 +36,26 @@ class OnlyInternalAPI(wx.Frame):
         self.InternalStation_text.Bind(wx.EVT_CHAR, self.OnKeyPress)
         self.GetTotes_label = wx.StaticText(
             panel, label="* Tote code : ", pos=(15, 73))
-        self.GetTotes_text = wx.TextCtrl(panel, value=str(
-            GetTotes), pos=(95, 70), size=(300, -30))
+        self.GetTotes_text = wx.TextCtrl(panel, value=str(GetTotes),pos=(90,75) , size=(250, -1))
         self.GetTotes_text.Bind(wx.EVT_TEXT, self.Set_Text_Value)
         self.GetTotes_text.Bind(wx.EVT_CHAR, self.OnKeyPressToteCode)
-        self.GetTotes_text.Bind(wx.EVT_TEXT_PASTE, self.OnPaste)
+        # self.GetTotes_text.Bind(wx.EVT_TEXT_PASTE, self.OnPaste)
 
-        Buttonfont = wx.Font(15, wx.FONTFAMILY_DEFAULT,
+        Buttonfont = wx.Font(13, wx.FONTFAMILY_DEFAULT,
                              wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
-        Button = wx.Button(panel, label="RUN", pos=(300, 120), size=(100, 20))
+        Button = wx.Button(panel, label="RUN", pos=(300, 120), size=(80, 30))
         Button.SetFont(Buttonfont)
         Button.Bind(wx.EVT_BUTTON, lambda event: __InternalToteInAPI__(
             BookingNumber=BookingNumber, StationKey=InternalStation, ToteList=GetTotes))
         CreateBookingButton = wx.Button(
-            panel, label="Create Booking", pos=(170, 120), size=(130, 20))
+            panel, label="Create Booking", pos=(170, 120), size=(130, 30))
         CreateBookingButton.SetFont(Buttonfont)
         CreateBookingButton.Bind(
             wx.EVT_BUTTON, lambda event:  self.create_booking())
         Buttonfont = wx.Font(15, wx.FONTFAMILY_DEFAULT,
                              wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
-        Button = wx.Button(panel, label="Upload Totes excel",
-                           pos=(10, 120), size=(160, 20))
+        Button = wx.Button(panel, label="Upload excel",
+                           pos=(10, 120), size=(160, 30))
         Button.SetFont(Buttonfont)
         Button.Bind(wx.EVT_BUTTON, lambda event: self.__UploadExcel__())
 
@@ -79,7 +78,6 @@ class OnlyInternalAPI(wx.Frame):
         BookingNumber = self.BookingNumber_text.GetValue()
         TotesText = self.GetTotes_text.GetValue()
         GetTotes = TotesText.split(",")
-        print(BookingNumber)
         if InternalStation == "":
             self.SetStatusText("StationKey is mandatory field")
             self.InternalStation_text.SetValue("101")
@@ -92,38 +90,54 @@ class OnlyInternalAPI(wx.Frame):
             self.BookingNumber_text.SetValue('ITRTY3F')
 
     def OnPaste(self, event):
+        print("Paste")
         text_data = wx.TextDataObject()
         if wx.TheClipboard.Open():
             success = wx.TheClipboard.GetData(text_data)
             wx.TheClipboard.Close()
             if success:
                 pasted_text = text_data.GetText().strip()
-                self.GetTotes_text.AppendText(pasted_text)
-
-    def OnKeyPress(self, event):
-        key_code = event.GetKeyCode()
-        if key_code < wx.WXK_SPACE or key_code == wx.WXK_DELETE or key_code == wx.WXK_BACK:
-            event.Skip()
-            return
-        if chr(key_code).isdigit():
-            event.Skip()
-        else:
-            wx.Bell()
-            return
+                if pasted_text.isdigit() or pasted_text == ",":
+                    self.GetTotes_text.AppendText(pasted_text)
+                    return
+                else:
+                    wx.Bell()
+                    print("Invalid paste")
+                    self.SetStatusText(f"Invalid paste ( {pasted_text} )")
+                    return
+        wx.Bell()
 
     def OnKeyPressToteCode(self, event):
         key_code = event.GetKeyCode()
         if key_code == wx.WXK_DELETE or key_code == wx.WXK_BACK:
             event.Skip()
             return
+        if event.ControlDown() and key_code == 22:
+            self.OnPaste(event)
         if key_code == wx.WXK_SPACE:
             wx.Bell()
             return
         if chr(key_code).isdigit() or chr(key_code) == ",":
             event.Skip()
+            return
+        if event.ControlDown() and key_code == 3 : 
+            event.Skip()
+            return
         else:
             wx.Bell()
             return
+
+    def OnKeyPress(self, event):
+        key_code = event.GetKeyCode()
+        if key_code < wx.WXK_SPACE or key_code == wx.WXK_DELETE or key_code == wx.WXK_BACK:
+            event.Skip()
+            return
+        elif chr(key_code).isdigit():
+            event.Skip()
+        else:
+            wx.Bell()
+            return
+
 
     def OnKeyPressBooking(self, event):
         key_code = event.GetKeyCode()

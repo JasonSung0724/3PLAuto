@@ -16,7 +16,7 @@ TY14 = 0
 class InternalAndCollection(wx.Frame):
 
     def __init__(self):
-        super().__init__(parent=None, title='Internal tote-in + Station', size=(400, 200))
+        super().__init__(parent=None, title='Internal tote-in + Station', size=(400, 220))
         panel = wx.Panel(self)
         self.CreateStatusBar()
         font = wx.Font(12, wx.FONTFAMILY_DEFAULT,
@@ -52,7 +52,7 @@ class InternalAndCollection(wx.Frame):
 
         Buttonfont = wx.Font(15, wx.FONTFAMILY_DEFAULT,
                              wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
-        Button = wx.Button(panel, label="RUN", pos=(300, 120), size=(100, 20))
+        Button = wx.Button(panel, label="RUN", pos=(250, 80), size=(130, 70))
         Button.SetFont(Buttonfont)
         Button.Bind(wx.EVT_BUTTON, lambda event: self.__InternalToteInAndToteCollection__(
             TY11, TY12, TY14))
@@ -83,6 +83,9 @@ class InternalAndCollection(wx.Frame):
     def OnKeyPress(self, event):
         key_code = event.GetKeyCode()
         if key_code < wx.WXK_SPACE or key_code == wx.WXK_DELETE or key_code == wx.WXK_BACK:
+            if event.ControlDown() and key_code == 22 :
+                if self.OnPaste(event) == False :
+                    return
             event.Skip()
             return
         if chr(key_code).isdigit():
@@ -91,7 +94,25 @@ class InternalAndCollection(wx.Frame):
             wx.Bell()
             return
 
+    def OnPaste(self, event):
+        print("Paste")
+        text_data = wx.TextDataObject()
+        if wx.TheClipboard.Open():
+            success = wx.TheClipboard.GetData(text_data)
+            wx.TheClipboard.Close()
+            if success:
+                pasted_text = text_data.GetText().strip()
+                if pasted_text.isdigit():
+                    return
+                else:
+                    wx.Bell()
+                    self.SetStatusText(f"Invalid paste ( {pasted_text} )")
+                    return False
+        wx.Bell()
+
     def __InternalToteInAndToteCollection__(self, TY11=0, TY12=0, TY14=0):
+        if InternalStation.startswith("1"): self.InternalStation_text.SetValue("101")
+        if CollectionStation != "503" and CollectionStation != "751": self.CollectionStation_text.SetValue("503")
         try:
             TY11 = int(TY11)
             TY12 = int(TY12)
@@ -99,6 +120,9 @@ class InternalAndCollection(wx.Frame):
         except ValueError:
             self.SetStatusText(
                 "Invalid input. Please enter integers for TY11, TY12, and TY14.")
+            self.TY11_text.SetValue("0")
+            self.TY12_text.SetValue("0")
+            self.TY14_text.SetValue("0")
             return
         print(f"TY11 : {TY11}, TY12 : {TY12}, TY14 : {TY14}")
         self.SetStatusText(f"TY11 : {TY11}, TY12 : {TY12}, TY14 : {TY14}")

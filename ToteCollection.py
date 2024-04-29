@@ -5,17 +5,21 @@ import time
 from datetime import datetime, timedelta
 
 
-def __MMSlogin__(MMSAccount, MMSPasword):
+def __MMSlogin__(MMSAccount, MMSPassword):
     Login_url = f'https://mms-user-{TestEnv.lower()}.hkmpcl.com.hk/user/login/merchantAppLogin2'
     login_request_body = {
-        "password": MMSPasword,
+        "password": MMSPassword,
         "username": MMSAccount
     }
     MMSTokenresponse = requests.post(Login_url, json=login_request_body)
-    AccessToken = MMSTokenresponse.json()['accessToken']
-    cur.execute(
-        f"UPDATE `Var_3PL_Table` SET `MMStoken` = '{AccessToken}' WHERE ID = 1")
-    return AccessToken
+    if MMSTokenresponse.status_code == 200 :
+        AccessToken = MMSTokenresponse.json()['accessToken']
+        cur.execute(
+            f"UPDATE `Var_3PL_Table` SET `MMStoken` = '{AccessToken}' WHERE ID = 1")
+        print(f'MMS login successfully. {MMSAccount} / {MMSPassword}')
+        return AccessToken
+    else :
+        return MMSTokenresponse.status_code
 
 
 def __CreateCollectionBooking__(TY11=0, TY12=0, TY14=0):
@@ -38,7 +42,10 @@ def __CreateCollectionBooking__(TY11=0, TY12=0, TY14=0):
     GetQuotaURL = f'https://tpl-mms-{TestEnv.lower()}.hkmpcl.com.hk/hktv3plmms/wms/quota'
     QuotaResponse = requests.post(
         GetQuotaURL, json=GetCollectionQuotqaPayload, headers=headers).json()
-    Quota = QuotaResponse['quotaTimeslotResponseDataList'][0]
+    try :
+        Quota = QuotaResponse['quotaTimeslotResponseDataList'][0]
+    except :
+        return "Quota not match , Quota error"
     CreateCollectionBody = {
         "collectionStartTime": Quota['startTimestamp'],
         "collectionEndTime": Quota['endTimestamp'],
@@ -75,9 +82,8 @@ def __CreateCollectionBooking__(TY11=0, TY12=0, TY14=0):
         return BookingNumber
     else:
         print('Create collection booking fail')
+        return BookingRecord['message']
 
-# 待修改，註冊且InternalToteIn後容易發生預定數量和實際入倉數量不符的問題
-# 利用InternalToteIn的Tote容易導致Collection到沒有成功入倉的箱子
 
 
 def __CollectionAPI__(BookingNumber, stationKey):
@@ -101,7 +107,10 @@ def __CollectionAPI__(BookingNumber, stationKey):
     print(ToteList)
     GetTaskNoURL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/task_number/get_task_number?serviceType=TOTE_COLLECTION&bookingNo={BookingNumber}'
     TaskNoResponse = requests.get(GetTaskNoURL).json()
-    TaskNo = TaskNoResponse['responseData'][0]['taskNo']
+    try:
+        TaskNo = TaskNoResponse['responseData'][0]['taskNo']
+    except:
+        return f"Task no. not found ,please enter {stationKey} first"
     print("Get Collection Task no. " + TaskNo)
     M5111URL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/wcs/tote_location_report'
     for perTote in ToteList:
@@ -176,6 +185,7 @@ def __CollectionAPI__(BookingNumber, stationKey):
     M5119SendRequsets = requests.post(
         M5119URL, data=M5119Body, headers=APIheaders).json()
     print(M5119SendRequsets)
+    return "Finished"
 
 
 def __GetCollectionBookingInfo__(BookingNumber):

@@ -1,6 +1,6 @@
 import sqlite3
 
-conn = sqlite3.connect('/Users/mac/Documents/GitHub/3PLAuto/3PL.db')
+conn = sqlite3.connect('./3PL.db')
 cur = conn.cursor()
 
 TestEnv = 'dev'
