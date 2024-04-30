@@ -8,13 +8,15 @@ import math
 
 def __StockOutAPI__(BookingNumber):
     Consolidation = __ConsolidationTaskHandle__(BookingNumber)
-    time.sleep(2)
+    time.sleep(3)
     CycleCount = __CycleCount__(BookingNumber)
     WeigthCheck = __WeigthCheck__(BookingNumber)
     if CycleCount == False and WeigthCheck == False:
         print("Stock-out flow error")
+        return "Stock-out API flow fail"
     elif CycleCount == True or WeigthCheck == True:
         print("Please check stock-out status , should change to 'ready'")
+        return "Please check stock-out status , should change to 'ready'"
 
 
 def __GetBookingInfo__(BookingNumber):
@@ -26,15 +28,20 @@ def __GetBookingInfo__(BookingNumber):
     WMSheaders = {'Authorization': f'Bearer {WMStoken}'}
     BookingInfoResponse = requests.get(
         GetStockOutInfoURL, headers=WMSheaders).json()
-    BatchQTY = BookingInfoResponse['data']['pagination']['totalElements']
-    print(f"Stock-out {BatchQTY} batch")
-    BatchDict = {}
-    if BatchQTY <= 100:
-        BookingInfoList = BookingInfoResponse['data']['bookingRecords']
-        for batch in BookingInfoList:
-            BatchDict[batch['batchId']] = batch
-    print(BatchDict)
-    return BatchDict
+    print(BookingInfoResponse)
+    try:
+        BatchQTY = BookingInfoResponse['data']['pagination']['totalElements']
+        print(f"Stock-out {BatchQTY} batch")
+        BatchDict = {}
+        if BatchQTY <= 100:
+            BookingInfoList = BookingInfoResponse['data']['bookingRecords']
+            for batch in BookingInfoList:
+                BatchDict[batch['batchId']] = batch
+        print(BatchDict)
+        return BatchDict
+    except:
+        print("Get stock-out booking fail")
+        return "Get stock-out booking fail"
 
 
 def __ConsolidationTaskHandle__(BookingNumber):
@@ -42,6 +49,8 @@ def __ConsolidationTaskHandle__(BookingNumber):
     TaskNoResponse = requests.get(GetTaskNoURL).json()
     print("Consolidation Get Task Number : " + TaskNoResponse['resultStatus'])
     SKUdict = __GetBookingInfo__(BookingNumber)
+    if type(SKUdict) == str :
+        return SKUdict
     if TaskNoResponse['resultStatus'] == "SUCCESS":
         TaskList = TaskNoResponse['responseData']
         for Task in TaskList:
@@ -168,12 +177,12 @@ def __CycleCount__(BookingNumber):
                 TOTE = SKUdict[batchid[0]]['toteNo']
             except IndexError:
                 print("Dirty data")
-                return
+                return "Dirty data"
             except KeyError:
                 print(
                     f"Dirty data , have multiple batchid with same compartment {batchid[0]}")
 
-                return
+                return f"Dirty data , have multiple batchid with same compartment {batchid[0]}"
             for batch in batchid:
                 Compartment = SKUdict[batch]['compartment']
                 if Compartment == "A":

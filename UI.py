@@ -6,6 +6,7 @@ from CreateProductAPI import CreateProduct
 from InternalAndCollectionUI import InternalAndCollection
 from OnlyInternalToteInAPI import OnlyInternalAPI
 from OnlyCollectionAPI import CollectionAPI
+from StockOutUI import StockOutAPI
 from GlobalVar import *
 
 
@@ -79,6 +80,8 @@ class ServiceSelectionFrame(wx.Frame):
             self.current_frame = CollectionAPI()
         elif selected_service == 'Create Product':
             self.current_frame = CreateProduct()
+        elif selected_service == 'Stock-out API':
+            self.current_frame = StockOutAPI()
         if self.current_frame:
             self.current_frame.Show()
 
@@ -106,6 +109,6 @@ if __name__ == "__main__":
     app = wx.App()
     frame = ServiceSelectionFrame()
     frame.Show()
-    # __TPLCMSlogin__()
-    # __WMSLogin__()
+    __TPLCMSlogin__()
+    __WMSLogin__()
     app.MainLoop()

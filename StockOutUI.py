@@ -5,7 +5,7 @@ BookingNumber = 'SOTY3F'
 
 class StockOutAPI(wx.Frame):
     def __init__(self):
-        super().__init__(parent=None, title='Internal tote-in + Tote collection', size=(300, 200))
+        super().__init__(parent=None, title='Stcok-Out API Script', size=(300, 200))
         panel = wx.Panel(self)
         self.CreateStatusBar()
         font = wx.Font(12, wx.FONTFAMILY_DEFAULT,
@@ -28,7 +28,8 @@ class StockOutAPI(wx.Frame):
             print("Booking Number Error")
             self.SetStatusText("Booking Number Error")
             return
-        __StockOutAPI__(BookingNumber)
+        Status = __StockOutAPI__(BookingNumber)
+        self.SetStatusText(Status)
 
 
     def Set_Text_Value(self, event):
@@ -41,8 +42,7 @@ class StockOutAPI(wx.Frame):
         key_code = event.GetKeyCode()
         BookingNumber = self.BookingNumber_text.GetValue()
         BookingLen = len(BookingNumber)
-        print(BookingNumber)
-        if key_code < wx.WXK_SPACE or key_code == wx.WXK_DELETE or key_code == wx.WXK_BACK:
+        if key_code < wx.WXK_SPACE or key_code == wx.WXK_DELETE or key_code == wx.WXK_BACK or key_code == wx.WXK_RIGHT or  key_code == wx.WXK_LEFT:
             event.Skip()
             return
         if chr(key_code).isdigit():
