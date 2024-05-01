@@ -3,9 +3,8 @@ from GlobalVar import *
 from ToteCollection import __CollectionAPI__, __GetCollectionBookingInfo__, __MMSlogin__, __CreateCollectionBooking__
 from internalToteIn import __WMSLogin__
 from StationFlow import __KIOSKFlow__
-TY11 = 2
-TY12 = 2
-TY14 = 2
-__MMSlogin__(MMSAccount, MMSPasword)
-BookingNumber = __CreateCollectionBooking__(TY11, TY12, TY14)
-__KIOSKFlow__(BookingNumber, '503')
+BookingDict = {'1400001039': {'A': {'ean': 'StockOutWeigthCheck', 'SKUuuid': '41e8c34d-6556-4c09-bb39-7536809b78ce', 'qty': 10, 'length': 10, 'width': 10, 'height': 10, 'skuWeight': 200.0, 'merchantCode': '100639', 'warehouseCode': 'H886800198', 'taskNo': '20240501-M01-00000000000000253', 'BatchId': '01828889294240501A140000103'}, 'B': {'ean': 'StockOutWeigthCheck', 'SKUuuid': '41e8c34d-6556-4c09-bb39-7536809b78ce', 'qty': 10, 'length': 10, 'width': 10, 'height': 10, 'skuWeight': 200.0, 'merchantCode': '100639', 'warehouseCode': 'H886800198', 'taskNo': '20240501-M01-00000000000000253', 'BatchId': '00440341991240501B140000103'}, 'C': {'ean': 'StockOutWeigthCheck', 'SKUuuid': '41e8c34d-6556-4c09-bb39-7536809b78ce', 'qty': 10, 'length': 10, 'width': 10, 'height': 10, 'skuWeight': 200.0, 'merchantCode': '100639', 'warehouseCode': 'H886800198', 'taskNo': '20240501-M01-00000000000000253', 'BatchId': '00484513447240501C140000103'}},
+               '1200016112': {'A': {'ean': 'StockOutWeigthCheck', 'SKUuuid': '41e8c34d-6556-4c09-bb39-7536809b78ce', 'qty': 10, 'length': 10, 'width': 10, 'height': 10, 'skuWeight': 200.0, 'merchantCode': '100639', 'warehouseCode': 'H886800198', 'taskNo': '20240501-M01-00000000000000252', 'BatchId': '00978347772240501A120001611'}, 'B': {'ean': 'StockOutWeigthCheck', 'SKUuuid': '41e8c34d-6556-4c09-bb39-7536809b78ce', 'qty': 10, 'length': 10, 'width': 10, 'height': 10, 'skuWeight': 200.0, 'merchantCode': '100639', 'warehouseCode': 'H886800198', 'taskNo': '20240501-M01-00000000000000252', 'BatchId': '01253053654240501B120001611'}}, '1100002846': {'A': {'ean': 'StockOutWeigthCheck', 'SKUuuid': '41e8c34d-6556-4c09-bb39-7536809b78ce', 'qty': 10, 'length': 10, 'width': 10, 'height': 10, 'skuWeight': 200.0, 'merchantCode': '100639', 'warehouseCode': 'H886800198', 'taskNo': '20240501-M01-00000000000000251', 'BatchId': '01411411116240501A110000284'}}}
+
+for toteCode in BookingDict.keys():
+    print(toteCode)
