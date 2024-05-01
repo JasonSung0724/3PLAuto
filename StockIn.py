@@ -87,7 +87,6 @@ def __StockInAPIFlow__(BookingNumber, StationKey):
             Compartment = __CheckCompartment__(batch['batchId'])[0]
             BookingDict[ToteCode][Compartment]['taskNo'] = TaskNo
             BookingDict[ToteCode][Compartment]['BatchId'] = Batchid
-        print(BookingDict)
         # M5102 + M5123
         toteCompleted = []
         for batch in batchesList:
@@ -160,6 +159,7 @@ def __M5102__(Task, StationKey):
                              headers=APIheaders).json()
     print(Response)
     print("Call M5102 Completed " + TaskNo)
+    print(M5102Body)
     __M5123__(TaskNo)
 
 
@@ -180,6 +180,7 @@ def __M5123__(TaskNo):
                              headers=APIheaders).json()
     print(f"Call M5123 Completed {TaskNo}")
     print(Response)
+    print(M5123Body)
     return
 
 
@@ -187,7 +188,6 @@ def __M5104__(toteCode, stationKey):
     global BookingDict
     M5104URL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/wcs/tote_in_checking_report'
     APIheaders = {"Content-Type": "application/json"}
-    print(BookingDict)
     first_Key = list(BookingDict[toteCode].keys())[0]
     print(first_Key)
     M5104TotalDetail = []
@@ -242,6 +242,7 @@ def __M5104__(toteCode, stationKey):
                              headers=APIheaders).json()
     print(Response)
     print(toteCode + " M5104 task completed.")
+    print(M5104Body)
 
 
 def __M5112__(toteCode):
@@ -267,6 +268,7 @@ def __M5112__(toteCode):
                              headers=APIheaders).json()
     print(Response)
     print(toteCode + " M5112 task completed.")
+    print(M5112Body)
 
 
 def __M5103__():
@@ -293,6 +295,7 @@ def __M5103__():
                              headers=APIheaders).json()
     print(Response)
     print("M5103 task completed")
+    print(M5103Body)
 
 
 __StockInAPIFlow__("SITY3F00004206", "102")
