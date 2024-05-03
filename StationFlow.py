@@ -67,6 +67,10 @@ def __OpenStaiton__(StationKey):
 
 def __KIOSKFlow__(BookingNumber, StationKey, ToteList=None):
     global driver
+    cur.execute("SELECT TestEnv FROM `Var_3PL_Table` WHERE ID = 1")
+    Result = cur.fetchone()
+    TestEnv = Result[0]
+    conn.commit()
     ServiceType = __CheckServiceType__(BookingNumber, StationKey)
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument('--start-maximized')  # 瀏覽器最大Size
@@ -150,6 +154,10 @@ def __KIOSKFlow__(BookingNumber, StationKey, ToteList=None):
 
 
 def __InputBookingNoEnterStation__(BookingNumber):
+    cur.execute("SELECT TestEnv FROM `Var_3PL_Table` WHERE ID = 1")
+    Result = cur.fetchone()
+    TestEnv = Result[0]
+    conn.commit()
     StationEntryele = WebDriverWait(driver, 5).until(
         EC.visibility_of_element_located((By.XPATH, "//*[text()='手動輸入']")))
     StationEntryele.click()
@@ -189,6 +197,10 @@ def __InputBookingNoEnterStation__(BookingNumber):
 
 
 def __503StuckOrderHandle__():
+    cur.execute("SELECT TestEnv FROM `Var_3PL_Table` WHERE ID = 1")
+    Result = cur.fetchone()
+    TestEnv = Result[0]
+    conn.commit()
     StationKey = "503"
     StuckOrder = driver.find_element(
         By.XPATH, '//*[@class="storybook-navtab-bookingNo storybook-navtab-clicked pt-2"]')

@@ -23,7 +23,11 @@ class ServiceSelectionFrame(wx.Frame):
                        wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
         self.GetStatusBar().SetFont(font)
         panel = wx.Panel(self)
-        self.ENVButton = wx.ToggleButton(panel, label="DEV", pos=(10, 250), size=(205, 80))
+        cur.execute("SELECT TestEnv FROM `Var_3PL_Table` WHERE ID = 1")
+        Result = cur.fetchone()
+        TestEnv = Result[0]
+        conn.commit()
+        self.ENVButton = wx.ToggleButton(panel, label=f"{TestEnv}", pos=(10, 250), size=(205, 80))
         self.ENVButton.Bind(wx.EVT_TOGGLEBUTTON, self.ENV_Setting)
         # self.BookingNumber_label = wx.StaticText(panel, label="Booking Number : ", pos=(15, 23))
         # self.BookingNumber_text = wx.TextCtrl(panel, value = BookingNumber , pos=(150, 20), size=(300, -1))
@@ -86,16 +90,19 @@ class ServiceSelectionFrame(wx.Frame):
             self.current_frame.Show()
 
     def ENV_Setting(self ,event):
-        global TestEnv
         if self.ENVButton.GetValue():
-            self.ENVButton.SetLabel("STAGING")
             TestEnv = 'staging'
+            self.ENVButton.SetLabel(f"{TestEnv}")
             print(TestEnv)
+            cur.execute(f"UPDATE `Var_3PL_Table` SET `TestEnv` = '{TestEnv}' WHERE ID = 1")
+            conn.commit()
             self.SetStatusText(f"ENV set to {TestEnv}")
         else:
-            self.ENVButton.SetLabel("DEV")
             TestEnv = 'dev'
+            self.ENVButton.SetLabel(f"{TestEnv}")
             print(TestEnv)
+            cur.execute(f"UPDATE `Var_3PL_Table` SET `TestEnv` = '{TestEnv}' WHERE ID = 1")
+            conn.commit()
             self.SetStatusText(f"ENV set to {TestEnv}")
         
 

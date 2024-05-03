@@ -7,6 +7,10 @@ from GlobalVar import *
 
 
 def __TPLCMSlogin__():
+    cur.execute("SELECT TestEnv FROM `Var_3PL_Table` WHERE ID = 1")
+    Result = cur.fetchone()
+    TestEnv = Result[0]
+    conn.commit()
     LoginAPI = f'https://mix-{TestEnv.lower()}.hkmpcl.com.hk/hktv_mix/cms/sso/login'
     Account = {
         "username": "MIX.TestAdmin1",
@@ -38,6 +42,10 @@ def __NewToteRegistration__(TY11=0, TY12=0, TY14=0):
     cur.execute("SELECT MIXtoken FROM `Var_3PL_Table` WHERE ID = 1")
     Result = cur.fetchone()
     MIXtoken = Result[0]
+    cur.execute("SELECT TestEnv FROM `Var_3PL_Table` WHERE ID = 1")
+    Result = cur.fetchone()
+    TestEnv = Result[0]
+    conn.commit()
     TotalTotes = TY11 + TY12 + TY14
     RegistrationURL = f'https://mix-{TestEnv.lower()}.hkmpcl.com.hk/hktv_mix/cms/inventory_tote/totes'
     headers = {'Authorization': f'Bearer {MIXtoken}'}
@@ -74,6 +82,10 @@ def __NewToteRegistration__(TY11=0, TY12=0, TY14=0):
 
 def __SingleRegisterTote__(ToteList, headers):
     print("Single tote registration...")
+    cur.execute("SELECT TestEnv FROM `Var_3PL_Table` WHERE ID = 1")
+    Result = cur.fetchone()
+    TestEnv = Result[0]
+    conn.commit()
     for tote in ToteList:
         SingleRegistrationURL = f'https://mix-{TestEnv.lower()}.hkmpcl.com.hk/hktv_mix/cms/inventory_tote/totes/{tote}'
         requests.put(SingleRegistrationURL, headers=headers)

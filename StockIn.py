@@ -1,4 +1,4 @@
-import requests
+import requests , time
 import json
 import re
 from GlobalVar import *
@@ -13,6 +13,9 @@ def __GetBookingInfo__(BookingNumber):
     cur.execute("SELECT WMStoken FROM `Var_3PL_Table` WHERE ID = 1")
     WMStokenResult = cur.fetchone()
     WMStoken = WMStokenResult[0]
+    cur.execute("SELECT TestEnv FROM `Var_3PL_Table` WHERE ID = 1")
+    Result = cur.fetchone()
+    TestEnv = Result[0]
     conn.commit()
     WMSheaders = {'Authorization': f'Bearer {WMStoken}'}
     GetBookingInfoURL = f'https://mwms-whtsy-dev.hkmpcl.com.hk/hktv_ty_mwms/cms/tote/booking_job/tote_record?bookingType=Stock+In&bookingNo={BookingNumber}&pageNo=1&pageSize=100'
@@ -72,6 +75,10 @@ def __GetBookingInfo__(BookingNumber):
 def __StockInAPIFlow__(BookingNumber, StationKey):
     global BookingDict
     # Get Task Number
+    cur.execute("SELECT TestEnv FROM `Var_3PL_Table` WHERE ID = 1")
+    Result = cur.fetchone()
+    TestEnv = Result[0]
+    conn.commit()
     GetTaskNoURL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/task_number/get_task_number?serviceType=STOCK_IN&bookingNo={BookingNumber}'
     APIheaders = {"Content-Type": "application/json"}
     TaskResponse = requests.get(GetTaskNoURL, headers=APIheaders).json()
@@ -96,12 +103,16 @@ def __StockInAPIFlow__(BookingNumber, StationKey):
                 toteCompleted.append(batch['toteCode'])
                 __M5102__(batch, StationKey)
         # M5104
+        time.sleep(3)
         for toteCode in BookingDict.keys():
             __M5104__(toteCode, StationKey)
+        
         # M5112
+        time.sleep(3)
         for toteCode in BookingDict.keys():
             __M5112__(toteCode)
         # M5103
+        time.sleep(3)
         __M5103__()
         print("Stock-in flow finished , please check booking status")
         BookingDict = {}
@@ -135,6 +146,10 @@ def __ToteWeight__(toteCode):
 
 def __M5102__(Task, StationKey):
     global BookingDict
+    cur.execute("SELECT TestEnv FROM `Var_3PL_Table` WHERE ID = 1")
+    Result = cur.fetchone()
+    TestEnv = Result[0]
+    conn.commit()
     M5102URL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/wcs/tote_in_status_report'
     APIheaders = {"Content-Type": "application/json"}
     TaskNo = Task['taskNo']
@@ -160,10 +175,15 @@ def __M5102__(Task, StationKey):
     print(Response)
     print("Call M5102 Completed " + TaskNo)
     print(M5102Body)
+    time.sleep(3)
     __M5123__(TaskNo)
 
 
 def __M5123__(TaskNo):
+    cur.execute("SELECT TestEnv FROM `Var_3PL_Table` WHERE ID = 1")
+    Result = cur.fetchone()
+    TestEnv = Result[0]
+    conn.commit()
     M5123URL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/wcs/task_status_report'
     APIheaders = {"Content-Type": "application/json"}
     M5123Body = json.dumps({
@@ -186,6 +206,10 @@ def __M5123__(TaskNo):
 
 def __M5104__(toteCode, stationKey):
     global BookingDict
+    cur.execute("SELECT TestEnv FROM `Var_3PL_Table` WHERE ID = 1")
+    Result = cur.fetchone()
+    TestEnv = Result[0]
+    conn.commit()
     M5104URL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/wcs/tote_in_checking_report'
     APIheaders = {"Content-Type": "application/json"}
     first_Key = list(BookingDict[toteCode].keys())[0]
@@ -247,6 +271,10 @@ def __M5104__(toteCode, stationKey):
 
 def __M5112__(toteCode):
     global BookingDict
+    cur.execute("SELECT TestEnv FROM `Var_3PL_Table` WHERE ID = 1")
+    Result = cur.fetchone()
+    TestEnv = Result[0]
+    conn.commit()
     TotalWeight = __ToteWeight__(toteCode)
     first_key = list(BookingDict[toteCode].keys())[0]
     TaskNo = BookingDict[toteCode][first_key]['taskNo']
@@ -273,6 +301,10 @@ def __M5112__(toteCode):
 
 def __M5103__():
     global BookingDict
+    cur.execute("SELECT TestEnv FROM `Var_3PL_Table` WHERE ID = 1")
+    Result = cur.fetchone()
+    TestEnv = Result[0]
+    conn.commit()
     TotalData = []
     for toteCode in BookingDict.keys():
         first_key = list(BookingDict[toteCode].keys())[0]

@@ -6,6 +6,9 @@ from GlobalVar import *
 
 def __WMSLogin__():
     global WMStoken
+    cur.execute("SELECT TestEnv FROM `Var_3PL_Table` WHERE ID = 1")
+    Result = cur.fetchone()
+    TestEnv = Result[0]
     LoginURL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/cms/sso/login'
     Payload = {
         "username": "TYWMS.TestAdmin1",
@@ -21,6 +24,10 @@ def __WMSLogin__():
 
 
 def __GetBookingNumber__(headers, page=1):
+    cur.execute("SELECT TestEnv FROM `Var_3PL_Table` WHERE ID = 1")
+    Result = cur.fetchone()
+    TestEnv = Result[0]
+    conn.commit()
     if page == 1:
         GetBookingNoURL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/cms/inventory_tote/booking/internal/tote_in?currentPage=1&pageSize=10&sort=bookingNo:asc&pageNo={page}'
         GetBookingNoResponse = requests.get(
@@ -37,6 +44,10 @@ def __GetBookingNumber__(headers, page=1):
 
 
 def __CreateInternalToteInBooking__(ToteList):
+    cur.execute("SELECT TestEnv FROM `Var_3PL_Table` WHERE ID = 1")
+    Result = cur.fetchone()
+    TestEnv = Result[0]
+    conn.commit()
     CreateBookingURL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/cms/inventory_tote/internal/booking'
     Payload = {"toteCodes": ToteList}
     headers = {'Authorization': f'Bearer {WMStoken}'}
@@ -64,6 +75,10 @@ def __InternalToteInAPI__(BookingNumber, StationKey, ToteList):
     print("Tote List")
     print(ToteList)
     time.sleep(2)
+    cur.execute("SELECT TestEnv FROM `Var_3PL_Table` WHERE ID = 1")
+    Result = cur.fetchone()
+    TestEnv = Result[0]
+    conn.commit()
     GetTaskNoURL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/task_number/get_task_number?serviceType=TOTE_RETURN&bookingNo={BookingNumber}'
     TaskNoResponse = requests.get(GetTaskNoURL).json()
     TaskNo = TaskNoResponse['responseData'][0]['taskNo']

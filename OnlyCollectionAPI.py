@@ -1,13 +1,12 @@
 import wx , time
 from ToteCollection import __CreateCollectionBooking__ , __MMSlogin__ , __CollectionAPI__
 from internalToteIn import __WMSLogin__
+from GlobalVar import *
 
 
 
 StationKey = '503'
 BookingNumber = 'TCTY3F'
-MMSAccount = ''
-MMSPassword = ''
 TY11 = "0"
 TY12 = "0"
 TY14 = "0"
@@ -15,12 +14,23 @@ TY14 = "0"
 
 class CollectionAPI(wx.Frame):
     def __init__(self):
+        global MMSPassword , MMSAccount
         super().__init__(parent=None, title='Only tote collection API', size=(330, 360))
         panel = wx.Panel(self)
         self.CreateStatusBar()
         font = wx.Font(12, wx.FONTFAMILY_DEFAULT,
                        wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
         self.GetStatusBar().SetFont(font)
+        cur.execute("SELECT TestEnv FROM `Var_3PL_Table` WHERE ID = 1")
+        Result = cur.fetchone()
+        TestEnv = Result[0]
+        cur.execute("SELECT MMSAccount FROM `Var_3PL_Table` WHERE ID = 1")
+        Result = cur.fetchone()
+        MMSAccount = Result[0]
+        cur.execute("SELECT MMSPassword FROM `Var_3PL_Table` WHERE ID = 1")
+        Result = cur.fetchone()
+        MMSPassword = Result[0]
+        conn.commit()
         self.Title_lable = wx.StaticText(
             panel, label="請先進入工作站", pos=(15, 23))
         self.Station_lable = wx.StaticText(
@@ -94,6 +104,9 @@ class CollectionAPI(wx.Frame):
         if TY14 == "" : self.TY14_text.SetValue("0")
         self.SetStatusText("")
         token = __MMSlogin__(MMSAccount=MMSAccount,MMSPassword=MMSPassword)
+        cur.execute(f"UPDATE `Var_3PL_Table` SET `MMSAccount` = '{MMSAccount}' WHERE ID = 1")
+        cur.execute(f"UPDATE `Var_3PL_Table` SET `MMSPassword` = '{MMSPassword}' WHERE ID = 1")
+        conn.commit()
         if token == 401 :
             self.SetStatusText("MMS account or password wrong")
             return

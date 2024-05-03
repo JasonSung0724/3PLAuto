@@ -6,6 +6,12 @@ from datetime import datetime, timedelta
 
 
 def __MMSlogin__(MMSAccount, MMSPassword):
+    cur.execute("SELECT TestEnv FROM `Var_3PL_Table` WHERE ID = 1")
+    Result = cur.fetchone()
+    TestEnv = Result[0]
+    cur.execute(f"UPDATE `Var_3PL_Table` SET `MMSAccount` = '{MMSAccount}' WHERE ID = 1")
+    cur.execute(f"UPDATE `Var_3PL_Table` SET `MMSPassword` = '{MMSPassword}' WHERE ID = 1")
+    conn.commit()
     Login_url = f'https://mms-user-{TestEnv.lower()}.hkmpcl.com.hk/user/login/merchantAppLogin2'
     login_request_body = {
         "password": MMSPassword,
@@ -16,16 +22,19 @@ def __MMSlogin__(MMSAccount, MMSPassword):
         AccessToken = MMSTokenresponse.json()['accessToken']
         cur.execute(
             f"UPDATE `Var_3PL_Table` SET `MMStoken` = '{AccessToken}' WHERE ID = 1")
-        print(f'MMS login successfully. {MMSAccount} / {MMSPassword}')
+        print(f'MMS {TestEnv} login successfully. {MMSAccount} / {MMSPassword}')
         return AccessToken
     else :
         return MMSTokenresponse.status_code
-
+# __MMSlogin__(MMSAccount,MMSPassword)
 
 def __CreateCollectionBooking__(TY11=0, TY12=0, TY14=0):
     cur.execute("SELECT MMStoken FROM `Var_3PL_Table` WHERE ID = 1")
     Result = cur.fetchone()
     MMStoken = Result[0]
+    cur.execute("SELECT TestEnv FROM `Var_3PL_Table` WHERE ID = 1")
+    Result = cur.fetchone()
+    TestEnv = Result[0]
     conn.commit()
     headers = {
         'Authorization': f'Bearer {MMStoken}'
@@ -87,6 +96,10 @@ def __CreateCollectionBooking__(TY11=0, TY12=0, TY14=0):
 
 
 def __CollectionAPI__(BookingNumber, stationKey):
+    cur.execute("SELECT TestEnv FROM `Var_3PL_Table` WHERE ID = 1")
+    Result = cur.fetchone()
+    TestEnv = Result[0]
+    conn.commit()
     CheckDict = __GetCollectionBookingInfo__(BookingNumber)
     TY11 = CheckDict[BookingNumber]['TY11']
     TY12 = CheckDict[BookingNumber]['TY12']
@@ -189,6 +202,10 @@ def __CollectionAPI__(BookingNumber, stationKey):
 
 
 def __GetCollectionBookingInfo__(BookingNumber):
+    cur.execute("SELECT TestEnv FROM `Var_3PL_Table` WHERE ID = 1")
+    Result = cur.fetchone()
+    TestEnv = Result[0]
+    conn.commit()
     Current = datetime.now()
     StartTime = Current - timedelta(days=1)
     StartDateTime = StartTime.strftime("%Y-%m-%dT%H:%M:%S.000Z")
@@ -221,6 +238,10 @@ def __GetCollectionBookingInfo__(BookingNumber):
 
 
 def __CollectionGetTotes__(CompartmentType, TotesQty):
+    cur.execute("SELECT TestEnv FROM `Var_3PL_Table` WHERE ID = 1")
+    Result = cur.fetchone()
+    TestEnv = Result[0]
+    conn.commit()
     # 獲取Tote , 條件(Available for rent , In System , TY3F)
     cur.execute("SELECT WMStoken FROM `Var_3PL_Table` WHERE ID = 1")
     WMStokenResult = cur.fetchone()

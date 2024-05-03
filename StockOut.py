@@ -20,6 +20,10 @@ def __StockOutAPI__(BookingNumber):
 
 
 def __GetBookingInfo__(BookingNumber):
+    cur.execute("SELECT TestEnv FROM `Var_3PL_Table` WHERE ID = 1")
+    Result = cur.fetchone()
+    TestEnv = Result[0]
+    conn.commit()
     GetStockOutInfoURL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/cms/tote/booking_job/tote_record?bookingType=Stock+Out&bookingNo={BookingNumber}&pageNo=1&pageSize=100'
     cur.execute("SELECT WMStoken FROM `Var_3PL_Table` WHERE ID = 1")
     WMStokenResult = cur.fetchone()
@@ -45,6 +49,10 @@ def __GetBookingInfo__(BookingNumber):
 
 
 def __ConsolidationTaskHandle__(BookingNumber):
+    cur.execute("SELECT TestEnv FROM `Var_3PL_Table` WHERE ID = 1")
+    Result = cur.fetchone()
+    TestEnv = Result[0]
+    conn.commit()
     GetTaskNoURL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/task_number/get_task_number?serviceType=STOCK_OUT_CONSOLIDATION&bookingNo={BookingNumber}'
     TaskNoResponse = requests.get(GetTaskNoURL).json()
     print("Consolidation Get Task Number : " + TaskNoResponse['resultStatus'])
@@ -131,6 +139,9 @@ def __GetTotes__(CompartmentType, TotesQty):
     cur.execute("SELECT WMStoken FROM `Var_3PL_Table` WHERE ID = 1")
     WMStokenResult = cur.fetchone()
     WMStoken = WMStokenResult[0]
+    cur.execute("SELECT TestEnv FROM `Var_3PL_Table` WHERE ID = 1")
+    Result = cur.fetchone()
+    TestEnv = Result[0]
     conn.commit()
     WMSheaders = {'Authorization': f'Bearer {WMStoken}'}
     GetTotesURL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/cms/inventory_tote?pageNo=1&pageSize=200&sort=toteCode:asc&status=Available+for+rent&warehouseCode=TY3F&toteType={CompartmentType}&locationType=In+System'
@@ -146,6 +157,10 @@ def __GetTotes__(CompartmentType, TotesQty):
 
 
 def __GetSKUinfo__(uuid):
+    cur.execute("SELECT TestEnv FROM `Var_3PL_Table` WHERE ID = 1")
+    Result = cur.fetchone()
+    TestEnv = Result[0]
+    conn.commit()
     URL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/cms/sku_inventory?pageNo=1&pageSize=10&skuUuid={uuid}&sort=skuUuid:desc'
     cur.execute("SELECT WMStoken FROM `Var_3PL_Table` WHERE ID = 1")
     WMStokenResult = cur.fetchone()
@@ -158,6 +173,10 @@ def __GetSKUinfo__(uuid):
 
 
 def __CycleCount__(BookingNumber):
+    cur.execute("SELECT TestEnv FROM `Var_3PL_Table` WHERE ID = 1")
+    Result = cur.fetchone()
+    TestEnv = Result[0]
+    conn.commit()
     SKUdict = __GetBookingInfo__(BookingNumber)
     GetTaskNoURL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/task_number/get_task_number?serviceType=STOCK_OUT_CYCLE&bookingNo={BookingNumber}'
     TaskNoResponse = requests.get(GetTaskNoURL).json()
@@ -243,6 +262,10 @@ def __CycleCount__(BookingNumber):
 
 
 def __WeigthCheck__(BookingNumber):
+    cur.execute("SELECT TestEnv FROM `Var_3PL_Table` WHERE ID = 1")
+    Result = cur.fetchone()
+    TestEnv = Result[0]
+    conn.commit()
     GetTaskNoURL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/task_number/get_task_number?serviceType=STOCK_OUT_WEIGHT&bookingNo={BookingNumber}'
     TaskNoResponse = requests.get(GetTaskNoURL).json()
     print("Weigth Check Task Number : " + TaskNoResponse['resultStatus'])

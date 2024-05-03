@@ -138,7 +138,7 @@ class InternalAndCollection(wx.Frame):
         totelist = __NewToteRegistration__(TY11, TY12, TY14)
         bookingNumber = __CreateInternalToteInBooking__(totelist)
         __KIOSKFlow__(bookingNumber, InternalStation, totelist)
-        __MMSlogin__(MMSAccount, MMSPasword)
+        __MMSlogin__(MMSAccount, MMSPassword)
         BookingNumber = __CreateCollectionBooking__(
             TY11, TY12, TY14)
         __KIOSKFlow__(BookingNumber, CollectionStation, totelist)

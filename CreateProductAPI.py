@@ -1,6 +1,7 @@
 import wx , os , json ,sys
 import requests
 from datetime import datetime
+from GlobalVar import *
 
 env = 'dev'
 Account = "cindy.yeh@shoalter.com"
@@ -176,17 +177,21 @@ class CreateProduct(wx.Frame):
         self.ENVButton.Bind(wx.EVT_TOGGLEBUTTON, self.ENV_Setting)
         
     def ENV_Setting(self ,event):
-        global env
         if self.ENVButton.GetValue():
-            self.ENVButton.SetLabel("STAGING")
             env = 'staging'
+            self.ENVButton.SetLabel(f"{env}")
             print(env)
             self.SetStatusText(f"ENV set to {env}")
+            cur.execute(f"UPDATE `Var_3PL_Table` SET `TestEnv` = '{env}' WHERE ID = 1")
+            conn.commit()
         else:
-            self.ENVButton.SetLabel("DEV")
             env = 'dev'
+            self.ENVButton.SetLabel(f"{env}")
             print(env)
             self.SetStatusText(f"ENV set to {env}")
+            cur.execute(f"UPDATE `Var_3PL_Table` SET `TestEnv` = '{env}' WHERE ID = 1")
+            conn.commit()  
+            
     def Select_Return_Days(self , event):
         global ReturnDays
         if self.ReturnDaysOption.GetStringSelection() :

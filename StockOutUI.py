@@ -1,6 +1,6 @@
 import wx
 from StockOut import __StockOutAPI__
-
+from GlobalVar import *
 BookingNumber = 'SOTY3F'
 
 class StockOutAPI(wx.Frame):
