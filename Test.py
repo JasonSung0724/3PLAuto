@@ -1,10 +1,30 @@
-import requests
-from GlobalVar import *
-from ToteCollection import __CollectionAPI__, __GetCollectionBookingInfo__, __MMSlogin__, __CreateCollectionBooking__
-from internalToteIn import __WMSLogin__
-from StationFlow import __KIOSKFlow__
-BookingDict = {'1400001039': {'A': {'ean': 'StockOutWeigthCheck', 'SKUuuid': '41e8c34d-6556-4c09-bb39-7536809b78ce', 'qty': 10, 'length': 10, 'width': 10, 'height': 10, 'skuWeight': 200.0, 'merchantCode': '100639', 'warehouseCode': 'H886800198', 'taskNo': '20240501-M01-00000000000000253', 'BatchId': '01828889294240501A140000103'}, 'B': {'ean': 'StockOutWeigthCheck', 'SKUuuid': '41e8c34d-6556-4c09-bb39-7536809b78ce', 'qty': 10, 'length': 10, 'width': 10, 'height': 10, 'skuWeight': 200.0, 'merchantCode': '100639', 'warehouseCode': 'H886800198', 'taskNo': '20240501-M01-00000000000000253', 'BatchId': '00440341991240501B140000103'}, 'C': {'ean': 'StockOutWeigthCheck', 'SKUuuid': '41e8c34d-6556-4c09-bb39-7536809b78ce', 'qty': 10, 'length': 10, 'width': 10, 'height': 10, 'skuWeight': 200.0, 'merchantCode': '100639', 'warehouseCode': 'H886800198', 'taskNo': '20240501-M01-00000000000000253', 'BatchId': '00484513447240501C140000103'}},
-               '1200016112': {'A': {'ean': 'StockOutWeigthCheck', 'SKUuuid': '41e8c34d-6556-4c09-bb39-7536809b78ce', 'qty': 10, 'length': 10, 'width': 10, 'height': 10, 'skuWeight': 200.0, 'merchantCode': '100639', 'warehouseCode': 'H886800198', 'taskNo': '20240501-M01-00000000000000252', 'BatchId': '00978347772240501A120001611'}, 'B': {'ean': 'StockOutWeigthCheck', 'SKUuuid': '41e8c34d-6556-4c09-bb39-7536809b78ce', 'qty': 10, 'length': 10, 'width': 10, 'height': 10, 'skuWeight': 200.0, 'merchantCode': '100639', 'warehouseCode': 'H886800198', 'taskNo': '20240501-M01-00000000000000252', 'BatchId': '01253053654240501B120001611'}}, '1100002846': {'A': {'ean': 'StockOutWeigthCheck', 'SKUuuid': '41e8c34d-6556-4c09-bb39-7536809b78ce', 'qty': 10, 'length': 10, 'width': 10, 'height': 10, 'skuWeight': 200.0, 'merchantCode': '100639', 'warehouseCode': 'H886800198', 'taskNo': '20240501-M01-00000000000000251', 'BatchId': '01411411116240501A110000284'}}}
+import wx
 
-for toteCode in BookingDict.keys():
-    print(toteCode)
+class MyFrame(wx.Frame):
+    def __init__(self, parent, title):
+        super(MyFrame, self).__init__(parent, title=title, size=(300, 200))
+
+        panel = wx.Panel(self)
+        vbox = wx.BoxSizer(wx.VERTICAL)
+
+        button = wx.Button(panel, label='彈出輸入框')
+        button.Bind(wx.EVT_BUTTON, self.on_button_click)
+        vbox.Add(button, flag=wx.EXPAND|wx.ALL, border=10)
+
+        panel.SetSizer(vbox)
+
+    def on_button_click(self, event):
+        dialog = wx.TextEntryDialog(self, '請輸入:', '輸入框')
+        if dialog.ShowModal() == wx.ID_OK:
+            input_value = dialog.GetValue()
+            self.execute_function(input_value)
+        dialog.Destroy()
+
+    def execute_function(self, value):
+        print("執行函數，輸入值為:", value)
+
+if __name__ == '__main__':
+    app = wx.App()
+    frame = MyFrame(None, title='彈出輸入框示例')
+    frame.Show()
+    app.MainLoop()
