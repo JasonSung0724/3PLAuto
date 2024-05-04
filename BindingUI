@@ -1,10 +1,11 @@
-import wx , time , requests
-from ToteCollection import __CreateCollectionBooking__ , __MMSlogin__ , __CollectionAPI__
+import wx
+import time
+import requests
+from ToteCollection import __CreateCollectionBooking__, __MMSlogin__, __CollectionAPI__
 from internalToteIn import __WMSLogin__
-from Binding import __CreateStockInBooking__
-from Binding import __CheckTote__
+from Binding import __CreateStockInBooking__, __CheckTote__, __CheckBookingExist__
+from ToteBindUI import OneCompartment, FourCompartment, TwoCompartment
 from GlobalVar import *
-
 
 
 StationKey = '503'
@@ -12,7 +13,7 @@ BookingNumber = 'SITY3F'
 TY11 = "0"
 TY12 = "0"
 TY14 = "0"
-StorageType ='AMBIENT'
+StorageType = 'AMBIENT'
 inUseTY11 = 0
 inUseTY12 = 0
 inUseTY14 = 0
@@ -21,7 +22,7 @@ BindingTote = ''
 
 class StockInUI(wx.Frame):
     def __init__(self):
-        global MMSAccount , MMSPassword
+        global MMSAccount, MMSPassword
         super().__init__(parent=None, title='Stock-in UI', size=(330, 800))
         panel = wx.Panel(self)
         self.CreateStatusBar()
@@ -38,7 +39,8 @@ class StockInUI(wx.Frame):
         Result = cur.fetchone()
         MMSPassword = Result[0]
         conn.commit()
-        self.Binding_label = wx.StaticText(panel, label="---------------------Binding Tote---------------------", pos=(15, 170))
+        self.Binding_label = wx.StaticText(
+            panel, label="---------------------Binding Tote---------------------", pos=(15, 170))
         self.BookingNumber_lable = wx.StaticText(
             panel, label="訂單號碼 :", pos=(15, 20))
         self.BookingNumber_text = wx.TextCtrl(
@@ -82,28 +84,39 @@ class StockInUI(wx.Frame):
         self.ExcecueButton.SetFont(Buttonfont)
         self.ExcecueButton.Bind(
             wx.EVT_BUTTON, lambda event:  self.Excecute())
-        
-        self.StorageTypeButton = wx.ToggleButton(panel, label="Ambient" ,  pos=(150, 102) ,size=(155,30) )
-        self.StorageTypeButton.Bind(wx.EVT_TOGGLEBUTTON, self.StorageTypeSetting)
-        self.ENVButton = wx.ToggleButton(panel, label=f"{TestEnv}" , pos = (250,15) ,size=(60,80) )
+
+        self.StorageTypeButton = wx.ToggleButton(
+            panel, label="Ambient",  pos=(150, 102), size=(155, 30))
+        self.StorageTypeButton.Bind(
+            wx.EVT_TOGGLEBUTTON, self.StorageTypeSetting)
+        self.ENVButton = wx.ToggleButton(
+            panel, label=f"{TestEnv}", pos=(250, 15), size=(60, 80))
         self.ENVButton.Bind(wx.EVT_TOGGLEBUTTON, self.ENV_Setting)
 
+        self.GetTY11Btn = wx.Button(
+            panel, label="GET TY11", pos=(15, 200), size=(95, 40))
+        self.GetTY11Btn.Bind(
+            wx.EVT_BUTTON, lambda event:  self.GetTotes("TY11", inUseTY11))
+        self.GetTY12Btn = wx.Button(
+            panel, label="GET TY12", pos=(112, 200), size=(95, 40))
+        self.GetTY12Btn.Bind(
+            wx.EVT_BUTTON, lambda event:  self.GetTotes("TY12", inUseTY12))
+        self.GetTY14Btn = wx.Button(
+            panel, label="GET TY14", pos=(210, 200), size=(95, 40))
+        self.GetTY14Btn.Bind(
+            wx.EVT_BUTTON, lambda event:  self.GetTotes("TY14", inUseTY14))
 
-        self.GetTY11Btn = wx.Button(panel, label="GET TY11", pos=(15, 200), size=(95, 40))
-        self.GetTY11Btn.Bind(wx.EVT_BUTTON, lambda event:  self.GetTotes("TY11",inUseTY11))
-        self.GetTY12Btn = wx.Button(panel, label="GET TY12", pos=(112, 200), size=(95, 40))
-        self.GetTY12Btn.Bind(wx.EVT_BUTTON, lambda event:  self.GetTotes("TY12",inUseTY12))
-        self.GetTY14Btn = wx.Button(panel, label="GET TY14", pos=(210, 200), size=(95, 40))
-        self.GetTY14Btn.Bind(wx.EVT_BUTTON, lambda event:  self.GetTotes("TY14",inUseTY14))
-
-        self.BindingTote_label = wx.StaticText(panel, label="Binding Tote Check", pos=(20, 260))
-        self.BindingTote_Text = wx.TextCtrl(panel, value=BindingTote, pos=(15, 280), size=(120, 20))
+        self.BindingTote_label = wx.StaticText(
+            panel, label="Binding Tote Check", pos=(20, 260))
+        self.BindingTote_Text = wx.TextCtrl(
+            panel, value=BindingTote, pos=(15, 280), size=(120, 20))
         self.BindingTote_Text.Bind(wx.EVT_TEXT, self.Set_Text_Value)
-        self.CheckToteBtn = wx.Button(panel, label="Check Tote", pos=(140, 252), size=(165, 50))
-        self.CheckToteBtn.Bind(wx.EVT_BUTTON, lambda event:  self.CheckTote(BindingTote))
+        self.CheckToteBtn = wx.Button(
+            panel, label="Check Tote", pos=(140, 252), size=(165, 50))
+        self.CheckToteBtn.Bind(
+            wx.EVT_BUTTON, lambda event:  self.CheckTote(BindingTote))
 
-
-    def CheckTote(self,Tote):
+    def CheckTote(self, Tote):
         if Tote == "":
             self.SetStatusText("Please input tote code first.")
             return
@@ -113,14 +126,27 @@ class StockInUI(wx.Frame):
             self.SetStatusText("Tote format wrong")
             return
         Response = __CheckTote__(BindingTote)
-        if type(Response) == str :
+        if type(Response) == str:
             self.SetStatusText(Response)
-        elif type(Response) == dict :
-            
-            pass
+        elif type(Response) == dict:
+            if BookingNumber.startswith("SITY3F") and len(BookingNumber) == 14:
+                if Tote.startswith("11"):
+                    dialog = OneCompartment(self, Tote, BookingNumber)
+                    dialog.ShowModal()
+                    dialog.Destroy()
+                elif Tote.startswith("12"):
+                    dialog = TwoCompartment(self, Tote, BookingNumber)
+                    dialog.ShowModal()
+                    dialog.Destroy()
+                else:
+                    dialog = FourCompartment(self, Tote, BookingNumber)
+                    dialog.ShowModal()
+                    dialog.Destroy()
+            else:
+                self.SetStatusText(f"Booking number format wrong")
 
-    def GetTotes(self,ToteType,inUse):
-        global inUseTY11 , inUseTY12 , inUseTY14 , BindingTote
+    def GetTotes(self, ToteType, inUse):
+        global inUseTY11, inUseTY12, inUseTY14, BindingTote
         cur.execute("SELECT TestEnv FROM `Var_3PL_Table` WHERE ID = 1")
         Result = cur.fetchone()
         TestEnv = Result[0]
@@ -129,11 +155,11 @@ class StockInUI(wx.Frame):
         WMStokenResult = cur.fetchone()
         WMStoken = WMStokenResult[0]
         conn.commit()
-        if ToteType == "TY11" :
+        if ToteType == "TY11":
             inUseTY11 += 1
-        elif ToteType == "TY12" :
+        elif ToteType == "TY12":
             inUseTY12 += 1
-        elif ToteType == "TY14" :
+        elif ToteType == "TY14":
             inUseTY14 += 1
         WMSheaders = {'Authorization': f'Bearer {WMStoken}'}
         GetTotesURL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/cms/inventory_tote?pageNo=1&pageSize=200&sort=toteCode:asc&locationType=Hold+by+Merchant&status=On+rent&warehouseCode=TY3F&toteType={ToteType}'
@@ -144,60 +170,63 @@ class StockInUI(wx.Frame):
         self.BindingTote_Text.SetValue(BindingTote)
         return BindingTote
 
-    def ENV_Setting(self ,event):
+    def ENV_Setting(self, event):
         if self.ENVButton.GetValue():
             env = 'staging'
             self.ENVButton.SetLabel(f"{env}")
             print(env)
             self.SetStatusText(f"ENV set to {env}")
-            cur.execute(f"UPDATE `Var_3PL_Table` SET `TestEnv` = '{env}' WHERE ID = 1")
+            cur.execute(
+                f"UPDATE `Var_3PL_Table` SET `TestEnv` = '{env}' WHERE ID = 1")
             conn.commit()
         else:
             env = 'dev'
             self.ENVButton.SetLabel(f"{env}")
             print(env)
             self.SetStatusText(f"ENV set to {env}")
-            cur.execute(f"UPDATE `Var_3PL_Table` SET `TestEnv` = '{env}' WHERE ID = 1")
-            conn.commit()   
+            cur.execute(
+                f"UPDATE `Var_3PL_Table` SET `TestEnv` = '{env}' WHERE ID = 1")
+            conn.commit()
 
-    def StorageTypeSetting(self ,event):
+    def StorageTypeSetting(self, event):
         global StorageType
         if self.StorageTypeButton.GetValue():
             self.StorageTypeButton.SetLabel("Air-con")
             StorageType = 'Aircon'
             print(StorageType)
-            self.SetStatusText(f"Select storage type {StorageType} you wanna booking")
+            self.SetStatusText(
+                f"Select storage type {StorageType} you wanna booking")
         else:
             self.StorageTypeButton.SetLabel("Ambient")
             StorageType = 'Ambient'
             print(StorageType)
-            self.SetStatusText(f"Select storage type {StorageType} you wanna booking")
+            self.SetStatusText(
+                f"Select storage type {StorageType} you wanna booking")
 
     def Excecute(self):
-        if len(BookingNumber) != 13 :
-            self.SetStatusText("invalid booking number")
-            return 
-        if StationKey != "503" and StationKey != "751" :
-            self.SetStatusText("Station should input 503 or 751")
-            return
-        else :
-            Status = __CollectionAPI__(BookingNumber=BookingNumber,stationKey=StationKey)
-            self.SetStatusText(Status)
-    
+        modal_dialog = FourCompartment(self, "1234567890", "SITY3F12345123")
+        modal_dialog.ShowModal()
+        modal_dialog.Destroy()
+
     def CreateBooking(self):
-        global TY11,TY12,TY14 , BookingNumber , StorageType
-        if TY11 == "" : self.TY11_text.SetValue("0")
-        if TY12 == "" : self.TY12_text.SetValue("0")
-        if TY14 == "" : self.TY14_text.SetValue("0")
+        global TY11, TY12, TY14, BookingNumber, StorageType
+        if TY11 == "":
+            self.TY11_text.SetValue("0")
+        if TY12 == "":
+            self.TY12_text.SetValue("0")
+        if TY14 == "":
+            self.TY14_text.SetValue("0")
         self.SetStatusText("")
-        token = __MMSlogin__(MMSAccount=MMSAccount,MMSPassword=MMSPassword)
-        cur.execute(f"UPDATE `Var_3PL_Table` SET `MMSAccount` = '{MMSAccount}' WHERE ID = 1")
-        cur.execute(f"UPDATE `Var_3PL_Table` SET `MMSPassword` = '{MMSPassword}' WHERE ID = 1")
+        token = __MMSlogin__(MMSAccount=MMSAccount, MMSPassword=MMSPassword)
+        cur.execute(
+            f"UPDATE `Var_3PL_Table` SET `MMSAccount` = '{MMSAccount}' WHERE ID = 1")
+        cur.execute(
+            f"UPDATE `Var_3PL_Table` SET `MMSPassword` = '{MMSPassword}' WHERE ID = 1")
         conn.commit()
-        if token == 401 :
+        if token == 401:
             self.SetStatusText("MMS account or password wrong")
             return
-        else :
+        else:
             self.SetStatusText(f"{MMSAccount} / {MMSPassword}")
             time.sleep(3)
             try:
@@ -205,11 +234,14 @@ class StockInUI(wx.Frame):
                 TY12_int = int(TY12)
                 TY14_int = int(TY14)
             except ValueError:
-                self.SetStatusText("Invalid input. Please enter integers for TY11, TY12, and TY14.")
-            if TY11_int + TY12_int + TY14_int > 0 :
-                self.SetStatusText(f"TY11 : {TY11} , TY12 : {TY12} , TY14 : {TY14}")
-                BookingNumber = __CreateStockInBooking__(TY11,TY12,TY14 , StorageType=StorageType)
-                if BookingNumber.startswith("SITY3F") :
+                self.SetStatusText(
+                    "Invalid input. Please enter integers for TY11, TY12, and TY14.")
+            if TY11_int + TY12_int + TY14_int > 0:
+                self.SetStatusText(
+                    f"TY11 : {TY11} , TY12 : {TY12} , TY14 : {TY14}")
+                BookingNumber = __CreateStockInBooking__(
+                    TY11, TY12, TY14, StorageType=StorageType)
+                if BookingNumber.startswith("SITY3F"):
                     self.SetStatusText(f"Booking Number : {BookingNumber}")
                     self.BookingNumber_text.SetValue(BookingNumber)
                     BookingNumber = BookingNumber
@@ -239,7 +271,7 @@ class StockInUI(wx.Frame):
             wx.Bell()
 
     def Set_Text_Value(self, event):
-        global BookingNumber , MMSAccount , MMSPassword , TY11 , TY12 , TY14 , BindingTote
+        global BookingNumber, MMSAccount, MMSPassword, TY11, TY12, TY14, BindingTote
         MMSAccount = self.Account_text.GetValue()
         MMSPassword = self.password_text.GetValue()
         TY11 = self.TY11_text.GetValue()
@@ -247,7 +279,7 @@ class StockInUI(wx.Frame):
         TY14 = self.TY14_text.GetValue()
         BookingNumber = self.BookingNumber_text.GetValue()
         BindingTote = self.BindingTote_Text.GetValue()
-        
+
         if not BookingNumber.startswith('SITY3F'):
             self.BookingNumber_text.SetValue("SITY3F")
             BookingNumber = "SITY3F"
@@ -262,7 +294,6 @@ class StockInUI(wx.Frame):
         else:
             wx.Bell()
             return
-    
 
 
 if __name__ == "__main__":
