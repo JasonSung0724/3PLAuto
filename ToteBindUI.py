@@ -3,6 +3,7 @@ import json
 import datetime
 import time
 from Binding import __CheckEan__, __SendBindListMerchantAPP__
+from StockIn import __StockInAPIFlow__
 
 Batch1 = ''
 Batch2 = ''
@@ -20,14 +21,16 @@ class FourCompartment(wx.Dialog):
             panel, label=f"輸入EAN到箱子,全部完成後按下SAVE \n訂單:{BookingNumber} -綁定{ToteCode}", pos=(30, 10))
         size = (120, 120)
         boxsize = (50, 30)
+        self.BookingNumber = BookingNumber
+        self.ToteCode = ToteCode
         self.Batch1_text = wx.TextCtrl(
             panel, value=Batch1, size=size, pos=(20, 60))
         self.Batch2_text = wx.TextCtrl(
             panel, value=Batch2, size=size, pos=(160, 60))
         self.Batch3_text = wx.TextCtrl(
-            panel, value=Batch3, size=size, pos=(160, 190))
+            panel, value=Batch3, size=size, pos=(20, 190))
         self.Batch4_text = wx.TextCtrl(
-            panel, value=Batch4, size=size, pos=(20, 190))
+            panel, value=Batch4, size=size, pos=(160, 190))
 
         self.QTY1_text = wx.TextCtrl(
             panel, value="", size=boxsize, pos=(90, 150))
@@ -38,18 +41,17 @@ class FourCompartment(wx.Dialog):
         self.QTY2_text.SetBackgroundColour(wx.YELLOW)
         self.QTY2_text.Bind(wx.EVT_CHAR, self.OnKeyPress)
         self.QTY3_text = wx.TextCtrl(
-            panel, value="", size=boxsize, pos=(230, 280))
+            panel, value="", size=boxsize, pos=(90, 280))
         self.QTY3_text.SetBackgroundColour(wx.YELLOW)
         self.QTY3_text.Bind(wx.EVT_CHAR, self.OnKeyPress)
         self.QTY4_text = wx.TextCtrl(
-            panel, value="", size=boxsize, pos=(90, 280))
+            panel, value="", size=boxsize, pos=(230, 280))
         self.QTY4_text.SetBackgroundColour(wx.YELLOW)
         self.QTY4_text.Bind(wx.EVT_CHAR, self.OnKeyPress)
 
         self.save_button = wx.Button(
             panel, label='Save', pos=(20, 320), size=(260, 40))
-        self.save_button.Bind(wx.EVT_BUTTON, self.on_save(
-            BookingNumber=BookingNumber, ToteCode=ToteCode))
+        self.save_button.Bind(wx.EVT_BUTTON, self.on_save)
 
     def OnKeyPress(self, event):
         key_code = event.GetKeyCode()
@@ -62,7 +64,7 @@ class FourCompartment(wx.Dialog):
             wx.Bell()
             return
 
-    def on_save(self, event, BookingNumber, ToteCode):
+    def on_save(self, event):
         Barcodes = [self.Batch1_text.GetValue(), self.Batch2_text.GetValue(),
                     self.Batch3_text.GetValue(), self.Batch4_text.GetValue()]
         Processed = {}
@@ -149,7 +151,8 @@ class FourCompartment(wx.Dialog):
             wx.MessageBox('請輸入Ean', '請輸入Ean', wx.OK | wx.ICON_WARNING)
             return
         Response = __SendBindListMerchantAPP__(
-            BookingNumber=BookingNumber, ToteCode=ToteCode, Detail=BindingDetail)
+            BookingNumber=self.BookingNumber, ToteCode=self.ToteCode, Detail=BindingDetail)
+        print(BindingDetail)
         wx.MessageBox(f'{Response}', '綁定回應', wx.OK | wx.ICON_WARNING)
         self.Close()
 
@@ -162,6 +165,8 @@ class TwoCompartment(wx.Dialog):
         panel = wx.Panel(self)
         self.TextLable = wx.StaticText(
             panel, label=f"輸入EAN到箱子,全部完成後按下SAVE \n訂單:{BookingNumber} -綁定{ToteCode}", pos=(20, 10))
+        self.BookingNumber = BookingNumber
+        self.ToteCode = ToteCode
         size = (120, 120)
         boxsize = (50, 30)
         self.Batch1_text = wx.TextCtrl(
@@ -182,7 +187,7 @@ class TwoCompartment(wx.Dialog):
             panel, label='Save', pos=(20, 200), size=(260, 40))
         self.save_button.Bind(wx.EVT_BUTTON, self.on_save)
 
-    def on_save(self, event, BookingNumber, ToteCode):
+    def on_save(self, event):
         Barcodes = [self.Batch1_text.GetValue(), self.Batch2_text.GetValue()]
         Processed = {}
         BindingDetail = []
@@ -256,7 +261,8 @@ class TwoCompartment(wx.Dialog):
             wx.MessageBox('請輸入Ean', '請輸入Ean', wx.OK | wx.ICON_WARNING)
             return
         Response = __SendBindListMerchantAPP__(
-            BookingNumber=BookingNumber, ToteCode=ToteCode, Detail=BindingDetail)
+            BookingNumber=self.BookingNumber, ToteCode=self.ToteCode, Detail=BindingDetail)
+        print(BindingDetail)
         wx.MessageBox(f'{Response}', '綁定回應', wx.OK | wx.ICON_WARNING)
         self.Close()
 
@@ -280,6 +286,8 @@ class OneCompartment(wx.Dialog):
         panel = wx.Panel(self)
         self.TextLable = wx.StaticText(
             panel, label=f"輸入EAN到箱子,全部完成後按下SAVE \n訂單:{BookingNumber} -綁定{ToteCode}", pos=(10, 10))
+        self.BookingNumber = BookingNumber
+        self.ToteCode = ToteCode
         size = (170, 170)
         boxsize = (50, 30)
         self.Batch1_text = wx.TextCtrl(
@@ -304,7 +312,7 @@ class OneCompartment(wx.Dialog):
             wx.Bell()
             return
 
-    def on_save(self, event, BookingNumber, ToteCode):
+    def on_save(self, event):
         ean = self.Batch1_text.GetValue()
         BindingDetail = []
         if ean == "":
@@ -348,6 +356,50 @@ class OneCompartment(wx.Dialog):
             wx.MessageBox('請輸入Ean', '請輸入Ean', wx.OK | wx.ICON_WARNING)
             return
         Response = __SendBindListMerchantAPP__(
-            BookingNumber=BookingNumber, ToteCode=ToteCode, Detail=BindingDetail)
+            BookingNumber=self.BookingNumber, ToteCode=self.ToteCode, Detail=BindingDetail)
+        print(BindingDetail)
         wx.MessageBox(f'{Response}', '綁定回應', wx.OK | wx.ICON_WARNING)
+        self.Close()
+
+
+class RunStockInAPI(wx.Dialog):
+    def __init__(self, parent, BookingNumber):
+        super(RunStockInAPI, self).__init__(
+            parent, title="Run Stock-In API", size=(260, 160))
+        self.SetTitle("Run Stock-In API")
+        self.BookingNumber = BookingNumber
+        panel = wx.Panel(self)
+        self.TextLable = wx.StaticText(
+            panel, label=f'訂單號碼{BookingNumber}\n請先進入工作站\n並在下方輸入工作站號碼\n按下執行後就會call api', pos=(10, 10))
+        self.StationKey_text = wx.TextCtrl(
+            panel, value="", size=(60, 30), pos=(10, 80))
+        self.StationKey_text.Bind(wx.EVT_CHAR, self.OnKeyPress)
+
+        self.save_button = wx.Button(
+            panel, label='執行', pos=(80, 70), size=(150, 60))
+        self.save_button.Bind(wx.EVT_BUTTON, self.on_save)
+
+    def OnKeyPress(self, event):
+        key_code = event.GetKeyCode()
+        if key_code < wx.WXK_SPACE or key_code == wx.WXK_DELETE or key_code == wx.WXK_BACK or key_code == wx.WXK_LEFT or key_code == wx.WXK_RIGHT:
+            event.Skip()
+            return
+        if chr(key_code).isdigit():
+            event.Skip()
+        else:
+            wx.Bell()
+            return
+
+    def on_save(self, event):
+        stationKey = self.StationKey_text.GetValue()
+        if not stationKey.startswith('1') or stationKey == "" or len(str(stationKey)) > 3:
+            wx.MessageBox(f'Station Key {stationKey} wrong')
+            self.StationKey_text.SetValue("")
+            self.StationKey_text.Clear()
+            return
+        Response = __StockInAPIFlow__(BookingNumber=self.BookingNumber,
+                                      StationKey=stationKey)
+        print(Response)
+        wx.MessageBox(f'{Response}', 'Stock-in API flow result',
+                      wx.OK | wx.ICON_WARNING)
         self.Close()

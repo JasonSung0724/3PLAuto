@@ -7,13 +7,35 @@ from InternalAndCollectionUI import InternalAndCollection
 from OnlyInternalToteInAPI import OnlyInternalAPI
 from OnlyCollectionAPI import CollectionAPI
 from StockOutUI import StockOutAPI
-from stock
+from StockInUI import StockInUI
 from GlobalVar import *
+import sys
+from io import StringIO
 
 
-# def Set_Text_Value(self, event):
-#     global BookingNumber
-#     BookingNumber = self.BookingNumber_text.GetValue()
+class LogWindow(wx.Frame):
+    def __init__(self):
+        super().__init__(None, title="Log Viewer", size=(400, 300))
+
+        self.log_text = wx.TextCtrl(
+            self, style=wx.TE_MULTILINE | wx.TE_READONLY)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(self.log_text, 1, wx.EXPAND | wx.ALL, 5)
+        self.SetSizer(sizer)
+        self.stdout_orig = sys.stdout
+        self.stderr_orig = sys.stderr
+        sys.stdout = StringIO()
+        sys.stderr = StringIO()
+        sys.stdout.write = self.write_text_ctrl
+        sys.stderr.write = self.write_text_ctrl
+
+    def write_text_ctrl(self, text):
+        self.log_text.AppendText(text)
+
+    def __del__(self):
+        sys.stdout = self.stdout_orig
+        sys.stderr = self.stderr_orig
 
 
 class ServiceSelectionFrame(wx.Frame):
@@ -31,9 +53,6 @@ class ServiceSelectionFrame(wx.Frame):
         self.ENVButton = wx.ToggleButton(
             panel, label=f"{TestEnv}", pos=(10, 250), size=(205, 80))
         self.ENVButton.Bind(wx.EVT_TOGGLEBUTTON, self.ENV_Setting)
-        # self.BookingNumber_label = wx.StaticText(panel, label="Booking Number : ", pos=(15, 23))
-        # self.BookingNumber_text = wx.TextCtrl(panel, value = BookingNumber , pos=(150, 20), size=(300, -1))
-        # self.BookingNumber_text.Bind(wx.EVT_TEXT, self.Set_Text_Value)
 
         self.Option1_radio = wx.RadioButton(
             panel, label='Only internal tote-in API')
@@ -41,11 +60,10 @@ class ServiceSelectionFrame(wx.Frame):
             panel, label='Internal tote-in + Tote collection')
         self.Option3_radio = wx.RadioButton(
             panel, label='Only tote collection API')
-        self.Option4_radio = wx.RadioButton(panel, label='Stock-in Binding')
-        self.Option5_radio = wx.RadioButton(
-            panel, label='Stock-in API + Station')
-        self.Option6_radio = wx.RadioButton(panel, label='Stock-out API')
-        self.Option7_radio = wx.RadioButton(panel, label='Create Product')
+        self.Option4_radio = wx.RadioButton(
+            panel, label='Stock-in full function')
+        self.Option5_radio = wx.RadioButton(panel, label='Stock-out API')
+        self.Option6_radio = wx.RadioButton(panel, label='Create Product')
 
         self.Bind(wx.EVT_RADIOBUTTON,
                   self.on_select_service, self.Option1_radio)
@@ -59,8 +77,6 @@ class ServiceSelectionFrame(wx.Frame):
                   self.on_select_service, self.Option5_radio)
         self.Bind(wx.EVT_RADIOBUTTON,
                   self.on_select_service, self.Option6_radio)
-        self.Bind(wx.EVT_RADIOBUTTON,
-                  self.on_select_service, self.Option7_radio)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.Option1_radio, 0, wx.ALL | wx.EXPAND, 10)
@@ -69,7 +85,6 @@ class ServiceSelectionFrame(wx.Frame):
         sizer.Add(self.Option4_radio, 0, wx.ALL | wx.EXPAND, 10)
         sizer.Add(self.Option5_radio, 0, wx.ALL | wx.EXPAND, 10)
         sizer.Add(self.Option6_radio, 0, wx.ALL | wx.EXPAND, 10)
-        sizer.Add(self.Option7_radio, 0, wx.ALL | wx.EXPAND, 10)
         panel.SetSizer(sizer)
         self.current_frame = None
 
@@ -87,7 +102,8 @@ class ServiceSelectionFrame(wx.Frame):
             self.current_frame = CreateProduct()
         elif selected_service == 'Stock-out API':
             self.current_frame = StockOutAPI()
-            StockInUI
+        elif selected_service == 'Stock-in full function':
+            self.current_frame = StockInUI()
         if self.current_frame:
             self.current_frame.Show()
 
@@ -110,16 +126,15 @@ class ServiceSelectionFrame(wx.Frame):
             self.SetStatusText(f"ENV set to {TestEnv}")
 
 
-class InternalToteIn(wx.Frame):
-    def __init__(self):
-        super().__init__(parent=None, title='Internal tote-in + Tote collection', size=(300, 200))
-        panel = wx.Panel(self)
-
-
 if __name__ == "__main__":
     app = wx.App()
     frame = ServiceSelectionFrame()
     frame.Show()
+
+    log_window = LogWindow()  # 创建日志窗口
+    log_window.Show()
+
     __TPLCMSlogin__()
     __WMSLogin__()
+
     app.MainLoop()

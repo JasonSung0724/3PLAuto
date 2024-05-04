@@ -1,8 +1,8 @@
-import wx , time
-from ToteCollection import __CreateCollectionBooking__ , __MMSlogin__ , __CollectionAPI__
+import wx
+import time
+from ToteCollection import __CreateCollectionBooking__, __MMSlogin__, __CollectionAPI__
 from internalToteIn import __WMSLogin__
 from GlobalVar import *
-
 
 
 StationKey = '503'
@@ -14,7 +14,7 @@ TY14 = "0"
 
 class CollectionAPI(wx.Frame):
     def __init__(self):
-        global MMSPassword , MMSAccount
+        global MMSPassword, MMSAccount
         super().__init__(parent=None, title='Only tote collection API', size=(330, 360))
         panel = wx.Panel(self)
         self.CreateStatusBar()
@@ -78,39 +78,53 @@ class CollectionAPI(wx.Frame):
             panel, value=MMSPassword, pos=(90, 132), size=(150, -1))
         self.password_text.Bind(wx.EVT_TEXT, self.Set_Text_Value)
         self.Title_lable = wx.StaticText(
-            panel, label=f"若有訂單可忽略,非必需! \n創建訂單後\n請自行進入站台再按執行", pos=(165, 170))
+            panel, label=f"僅有訂單號碼必填! \n輸入訂單後\n請自行進入站台再按執行", pos=(165, 170))
         self.ExcecueButton = wx.Button(
             panel, label="執行", pos=(170, 230), size=(130, 50))
         self.ExcecueButton.SetFont(Buttonfont)
         self.ExcecueButton.Bind(
             wx.EVT_BUTTON, lambda event:  self.Excecute())
-        
 
     def Excecute(self):
-        if len(BookingNumber) != 13 :
+        if len(BookingNumber) != 14:
             self.SetStatusText("invalid booking number")
-            return 
-        if StationKey != "503" and StationKey != "751" :
+            wx.MessageBox(
+                f'invalid booking number {BookingNumber}', 'Warning', wx.OK | wx.ICON_WARNING)
+            return
+        if StationKey != "503" and StationKey != "751":
             self.SetStatusText("Station should input 503 or 751")
+            wx.MessageBox(
+                f'Station should input 503 or 751', 'Warning', wx.OK | wx.ICON_WARNING)
             return
-        else :
-            Status = __CollectionAPI__(BookingNumber=BookingNumber,stationKey=StationKey)
+        else:
+            Status = __CollectionAPI__(
+                BookingNumber=BookingNumber, stationKey=StationKey)
             self.SetStatusText(Status)
-    
-    def CreateBooking(self):
-        global TY11,TY12,TY14 , BookingNumber
-        if TY11 == "" : self.TY11_text.SetValue("0")
-        if TY12 == "" : self.TY12_text.SetValue("0")
-        if TY14 == "" : self.TY14_text.SetValue("0")
-        self.SetStatusText("")
-        token = __MMSlogin__(MMSAccount=MMSAccount,MMSPassword=MMSPassword)
-        cur.execute(f"UPDATE `Var_3PL_Table` SET `MMSAccount` = '{MMSAccount}' WHERE ID = 1")
-        cur.execute(f"UPDATE `Var_3PL_Table` SET `MMSPassword` = '{MMSPassword}' WHERE ID = 1")
-        conn.commit()
-        if token == 401 :
-            self.SetStatusText("MMS account or password wrong")
+            wx.MessageBox(f'{Status}', 'Call API result',
+                          wx.OK | wx.ICON_WARNING)
             return
-        else :
+
+    def CreateBooking(self):
+        global TY11, TY12, TY14, BookingNumber
+        if TY11 == "":
+            self.TY11_text.SetValue("0")
+        if TY12 == "":
+            self.TY12_text.SetValue("0")
+        if TY14 == "":
+            self.TY14_text.SetValue("0")
+        self.SetStatusText("")
+        token = __MMSlogin__(MMSAccount=MMSAccount, MMSPassword=MMSPassword)
+        cur.execute(
+            f"UPDATE `Var_3PL_Table` SET `MMSAccount` = '{MMSAccount}' WHERE ID = 1")
+        cur.execute(
+            f"UPDATE `Var_3PL_Table` SET `MMSPassword` = '{MMSPassword}' WHERE ID = 1")
+        conn.commit()
+        if token == 401:
+            self.SetStatusText("MMS account or password wrong")
+            wx.MessageBox("MMS account or password wrong",
+                          'Warning', wx.OK | wx.ICON_WARNING)
+            return
+        else:
             self.SetStatusText(f"{MMSAccount} / {MMSPassword}")
             time.sleep(3)
             try:
@@ -118,20 +132,29 @@ class CollectionAPI(wx.Frame):
                 TY12_int = int(TY12)
                 TY14_int = int(TY14)
             except ValueError:
-                self.SetStatusText("Invalid input. Please enter integers for TY11, TY12, and TY14.")
-            if TY11_int + TY12_int + TY14_int > 0 :
-                self.SetStatusText(f"TY11 : {TY11} , TY12 : {TY12} , TY14 : {TY14}")
-                BookingNumber = __CreateCollectionBooking__(TY11,TY12,TY14)
-                if BookingNumber.startswith("TCTY3F") :
+                self.SetStatusText(
+                    "Invalid input. Please enter integers for TY11, TY12, and TY14.")
+                wx.MessageBox('Invalid input. Please enter integers for TY11, TY12, and TY14.',
+                              'Warning', wx.OK | wx.ICON_WARNING)
+                return
+            if TY11_int + TY12_int + TY14_int > 0:
+                self.SetStatusText(
+                    f"TY11 : {TY11} , TY12 : {TY12} , TY14 : {TY14}")
+                BookingNumber = __CreateCollectionBooking__(TY11, TY12, TY14)
+                if BookingNumber.startswith("TCTY3F"):
                     self.SetStatusText(f"Booking Number : {BookingNumber}")
                     self.BookingNumber_text.SetValue(BookingNumber)
                     BookingNumber = BookingNumber
                 else:
                     self.SetStatusText(BookingNumber)
+                    wx.MessageBox(
+                        f'{BookingNumber}', 'Create Booking suceess', wx.OK | wx.ICON_WARNING)
+                    return
             else:
                 print(TY11_int + TY12_int + TY14_int)
                 self.SetStatusText(f"請輸入箱數")
-
+                wx.MessageBox('請輸入箱數', 'Warning', wx.OK | wx.ICON_WARNING)
+                return
 
     def OnKeyPressBooking(self, event):
         global BookingNumber
@@ -153,7 +176,7 @@ class CollectionAPI(wx.Frame):
             wx.Bell()
 
     def Set_Text_Value(self, event):
-        global StationKey, BookingNumber , MMSAccount , MMSPassword , TY11 , TY12 , TY14
+        global StationKey, BookingNumber, MMSAccount, MMSPassword, TY11, TY12, TY14
         StationKey = self.Station_text.GetValue()
         MMSAccount = self.Account_text.GetValue()
         MMSPassword = self.password_text.GetValue()
@@ -161,7 +184,7 @@ class CollectionAPI(wx.Frame):
         TY12 = self.TY12_text.GetValue()
         TY14 = self.TY14_text.GetValue()
         BookingNumber = self.BookingNumber_text.GetValue()
-        
+
         if len(StationKey) > 3:
             self.Station_text.SetValue("503")
             StationKey = "503"
@@ -179,7 +202,6 @@ class CollectionAPI(wx.Frame):
         else:
             wx.Bell()
             return
-    
 
 
 if __name__ == "__main__":

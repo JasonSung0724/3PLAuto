@@ -107,10 +107,12 @@ def __CollectionAPI__(BookingNumber, stationKey):
     TestEnv = Result[0]
     conn.commit()
     CheckDict = __GetCollectionBookingInfo__(BookingNumber)
+    # 查詢訂單需要多少箱子
     TY11 = CheckDict[BookingNumber]['TY11']
     TY12 = CheckDict[BookingNumber]['TY12']
     TY14 = CheckDict[BookingNumber]['TY14']
     ToteList = []
+    # WMS抓符合條件的tote來使用
     if TY11 != 0:
         TY11ToteList = __CollectionGetTotes__("TY11", TY11)
         for TY11tote in TY11ToteList:

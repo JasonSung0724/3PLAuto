@@ -1,4 +1,5 @@
-import requests , time
+import requests
+import time
 import json
 import re
 from GlobalVar import *
@@ -106,7 +107,7 @@ def __StockInAPIFlow__(BookingNumber, StationKey):
         time.sleep(3)
         for toteCode in BookingDict.keys():
             __M5104__(toteCode, StationKey)
-        
+
         # M5112
         time.sleep(3)
         for toteCode in BookingDict.keys():
@@ -116,7 +117,7 @@ def __StockInAPIFlow__(BookingNumber, StationKey):
         __M5103__()
         print("Stock-in flow finished , please check booking status")
         BookingDict = {}
-        return
+        return "Stock-in flow finished , please check booking status"
     else:
         print(TaskResponse['resultStatus'])
         return TaskResponse['resultStatus']
@@ -198,8 +199,8 @@ def __M5123__(TaskNo):
     })
     Response = requests.post(M5123URL, data=M5123Body,
                              headers=APIheaders).json()
-    print(f"Call M5123 Completed {TaskNo}")
     print(Response)
+    print(f"Call M5123 Completed {TaskNo}")
     print(M5123Body)
     return
 
@@ -330,4 +331,4 @@ def __M5103__():
     print(M5103Body)
 
 
-__StockInAPIFlow__("SITY3F00004206", "102")
+# __StockInAPIFlow__("SITY3F00004245", "102")

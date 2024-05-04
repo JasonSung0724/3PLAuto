@@ -16,7 +16,7 @@ TY14 = 0
 class InternalAndCollection(wx.Frame):
 
     def __init__(self):
-        super().__init__(parent=None, title='Internal tote-in + Station', size=(400, 220))
+        super().__init__(parent=None, title='Internal tote-in + Tote collection', size=(400, 220))
         panel = wx.Panel(self)
         self.CreateStatusBar()
         font = wx.Font(12, wx.FONTFAMILY_DEFAULT,
@@ -83,8 +83,8 @@ class InternalAndCollection(wx.Frame):
     def OnKeyPress(self, event):
         key_code = event.GetKeyCode()
         if key_code < wx.WXK_SPACE or key_code == wx.WXK_DELETE or key_code == wx.WXK_BACK:
-            if event.ControlDown() and key_code == 22 :
-                if self.OnPaste(event) == False :
+            if event.ControlDown() and key_code == 22:
+                if self.OnPaste(event) == False:
                     return
             event.Skip()
             return
@@ -111,8 +111,10 @@ class InternalAndCollection(wx.Frame):
         wx.Bell()
 
     def __InternalToteInAndToteCollection__(self, TY11=0, TY12=0, TY14=0):
-        if InternalStation.startswith("1"): self.InternalStation_text.SetValue("101")
-        if CollectionStation != "503" and CollectionStation != "751": self.CollectionStation_text.SetValue("503")
+        if InternalStation.startswith("1"):
+            self.InternalStation_text.SetValue("101")
+        if CollectionStation != "503" and CollectionStation != "751":
+            self.CollectionStation_text.SetValue("503")
         try:
             TY11 = int(TY11)
             TY12 = int(TY12)

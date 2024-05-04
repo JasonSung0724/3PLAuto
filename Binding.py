@@ -147,20 +147,46 @@ def __SendBindListMerchantAPP__(BookingNumber, ToteCode, Detail):
     cur.execute("SELECT TestEnv FROM `Var_3PL_Table` WHERE ID = 1")
     Result = cur.fetchone()
     TestEnv = Result[0]
+    cur.execute("SELECT MMStoken FROM `Var_3PL_Table` WHERE ID = 1")
+    Result = cur.fetchone()
+    MMStoken = Result[0]
     conn.commit()
+    MerchantAPPheader = {
+        "Content-Type": "application/json",
+        "Accept": "application/json, text/plain, */*",
+        "Authorization": f"Bearer {MMStoken}"
+    }
     URL = f'https://tpl-mms-{TestEnv.lower()}.hkmpcl.com.hk/hktv3plmms/appscan/order'
-    payload = json.dump({
+    payload = json.dumps({
         "orderId": BookingNumber,
         "tote": {
             "toteId": ToteCode,
             "partitions": Detail
         }
     })
-    Response = requests.put(URL, data=payload).json()
+    Response = requests.put(
+        URL, data=payload, headers=MerchantAPPheader).json()
     return Response
 
 
-def __CheckBookingExist__(BookingNumber):
+def __SendBindListToMIX__(BookingNumber):
+    cur.execute("SELECT TestEnv FROM `Var_3PL_Table` WHERE ID = 1")
+    Result = cur.fetchone()
+    TestEnv = Result[0]
+    cur.execute("SELECT MMStoken FROM `Var_3PL_Table` WHERE ID = 1")
+    Result = cur.fetchone()
+    MMStoken = Result[0]
+    cur.execute("SELECT MMStoken FROM `Var_3PL_Table` WHERE ID = 1")
+    Result = cur.fetchone()
+    MMStoken = Result[0]
+    conn.commit()
+    URL = f'https://tpl-mms-{TestEnv.lower()}.hkmpcl.com.hk/hktv3plmms/stockin/{BookingNumber}/bind'
+    MMSheaders = {"Authorization": f"Bearer {MMStoken}"}
+    Response = requests.post(URL, headers=MMSheaders).json()
+    return Response
+
+
+def __CheckBookingExist__(BookingNumber, status):
     cur.execute("SELECT TestEnv FROM `Var_3PL_Table` WHERE ID = 1")
     Result = cur.fetchone()
     TestEnv = Result[0]
@@ -173,7 +199,6 @@ def __CheckBookingExist__(BookingNumber):
     }
     MMSTokenresponse = requests.post(Login_url, json=login_request_body)
     if MMSTokenresponse.status_code == 200:
-        print(MMSTokenresponse.json())
         AccessToken = MMSTokenresponse.json()['accessToken']
     URL = f'https://tpl-mms-{TestEnv.lower()}.hkmpcl.com.hk/hktv3plmms/admin/stockin?page=1&pageSize=10&stockInOrderId={BookingNumber}&sort=stockInId&sortType=DESC'
     headers = {
@@ -183,4 +208,8 @@ def __CheckBookingExist__(BookingNumber):
     if Response['content'] == []:
         return False
     else:
-        return True
+        if Response['content'][0]['actionStatus'] == status:
+            return True
+        else:
+            print(f"訂單狀態並不是{status}")
+            return False
