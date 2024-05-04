@@ -40,8 +40,11 @@ def __CheckEan__(Ean):
         "Accept": "application/json, text/plain, */*",
         "Authorization": f"Bearer {MMStoken}"
     }
-    EanResponse = requests.get(CheckEanURL, headers=APIheaders).json()
-    print(EanResponse)
+    EanResponse = requests.get(CheckEanURL, headers=APIheaders)
+    if EanResponse.status_code == 200:
+        return EanResponse.json()
+    else:
+        return EanResponse.json()['errorMessage']
 
 
 def __Binding__():
@@ -138,6 +141,23 @@ def __CreateStockInBooking__(TY11=0, TY12=0, TY14=0, StorageType="AMBIENT"):
     else:
         print('Create StockIn booking fail')
         print(StockInBooking)
+
+
+def __SendBindListMerchantAPP__(BookingNumber, ToteCode, Detail):
+    cur.execute("SELECT TestEnv FROM `Var_3PL_Table` WHERE ID = 1")
+    Result = cur.fetchone()
+    TestEnv = Result[0]
+    conn.commit()
+    URL = f'https://tpl-mms-{TestEnv.lower()}.hkmpcl.com.hk/hktv3plmms/appscan/order'
+    payload = json.dump({
+        "orderId": BookingNumber,
+        "tote": {
+            "toteId": ToteCode,
+            "partitions": Detail
+        }
+    })
+    Response = requests.put(URL, data=payload).json()
+    return Response
 
 
 def __CheckBookingExist__(BookingNumber):

@@ -130,20 +130,25 @@ class StockInUI(wx.Frame):
             self.SetStatusText(Response)
         elif type(Response) == dict:
             if BookingNumber.startswith("SITY3F") and len(BookingNumber) == 14:
-                if Tote.startswith("11"):
-                    dialog = OneCompartment(self, Tote, BookingNumber)
-                    dialog.ShowModal()
-                    dialog.Destroy()
-                elif Tote.startswith("12"):
-                    dialog = TwoCompartment(self, Tote, BookingNumber)
-                    dialog.ShowModal()
-                    dialog.Destroy()
+                if __CheckBookingExist__(BookingNumber):
+                    if Tote.startswith("11"):
+                        dialog = OneCompartment(self, Tote, BookingNumber)
+                        dialog.ShowModal()
+                        dialog.Destroy()
+                    elif Tote.startswith("12"):
+                        dialog = TwoCompartment(self, Tote, BookingNumber)
+                        dialog.ShowModal()
+                        dialog.Destroy()
+                    else:
+                        dialog = FourCompartment(self, Tote, BookingNumber)
+                        dialog.ShowModal()
+                        dialog.Destroy()
                 else:
-                    dialog = FourCompartment(self, Tote, BookingNumber)
-                    dialog.ShowModal()
-                    dialog.Destroy()
+                    self.SetStatusText(
+                        f"Booking number : {BookingNumber} not exist")
             else:
-                self.SetStatusText(f"Booking number format wrong")
+                self.SetStatusText(
+                    f"Booking number : {BookingNumber} format wrong")
 
     def GetTotes(self, ToteType, inUse):
         global inUseTY11, inUseTY12, inUseTY14, BindingTote
@@ -204,7 +209,7 @@ class StockInUI(wx.Frame):
                 f"Select storage type {StorageType} you wanna booking")
 
     def Excecute(self):
-        modal_dialog = FourCompartment(self, "1234567890", "SITY3F12345123")
+        modal_dialog = OneCompartment(self, "1234567890", "SITY3F12345123")
         modal_dialog.ShowModal()
         modal_dialog.Destroy()
 

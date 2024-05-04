@@ -9,8 +9,10 @@ def __MMSlogin__(MMSAccount, MMSPassword):
     cur.execute("SELECT TestEnv FROM `Var_3PL_Table` WHERE ID = 1")
     Result = cur.fetchone()
     TestEnv = Result[0]
-    cur.execute(f"UPDATE `Var_3PL_Table` SET `MMSAccount` = '{MMSAccount}' WHERE ID = 1")
-    cur.execute(f"UPDATE `Var_3PL_Table` SET `MMSPassword` = '{MMSPassword}' WHERE ID = 1")
+    cur.execute(
+        f"UPDATE `Var_3PL_Table` SET `MMSAccount` = '{MMSAccount}' WHERE ID = 1")
+    cur.execute(
+        f"UPDATE `Var_3PL_Table` SET `MMSPassword` = '{MMSPassword}' WHERE ID = 1")
     conn.commit()
     Login_url = f'https://mms-user-{TestEnv.lower()}.hkmpcl.com.hk/user/login/merchantAppLogin2'
     login_request_body = {
@@ -18,15 +20,20 @@ def __MMSlogin__(MMSAccount, MMSPassword):
         "username": MMSAccount
     }
     MMSTokenresponse = requests.post(Login_url, json=login_request_body)
-    if MMSTokenresponse.status_code == 200 :
+    if MMSTokenresponse.status_code == 200:
         AccessToken = MMSTokenresponse.json()['accessToken']
         cur.execute(
             f"UPDATE `Var_3PL_Table` SET `MMStoken` = '{AccessToken}' WHERE ID = 1")
         print(f'MMS {TestEnv} login successfully. {MMSAccount} / {MMSPassword}')
+        print(AccessToken)
         return AccessToken
-    else :
+    else:
         return MMSTokenresponse.status_code
+
+
+__MMSlogin__("cindy.yeh@shoalter.com", 'Aa123456')
 # __MMSlogin__(MMSAccount,MMSPassword)
+
 
 def __CreateCollectionBooking__(TY11=0, TY12=0, TY14=0):
     cur.execute("SELECT MMStoken FROM `Var_3PL_Table` WHERE ID = 1")
@@ -51,9 +58,9 @@ def __CreateCollectionBooking__(TY11=0, TY12=0, TY14=0):
     GetQuotaURL = f'https://tpl-mms-{TestEnv.lower()}.hkmpcl.com.hk/hktv3plmms/wms/quota'
     QuotaResponse = requests.post(
         GetQuotaURL, json=GetCollectionQuotqaPayload, headers=headers).json()
-    try :
+    try:
         Quota = QuotaResponse['quotaTimeslotResponseDataList'][0]
-    except :
+    except:
         return "Quota not match , Quota error"
     CreateCollectionBody = {
         "collectionStartTime": Quota['startTimestamp'],
@@ -92,7 +99,6 @@ def __CreateCollectionBooking__(TY11=0, TY12=0, TY14=0):
     else:
         print('Create collection booking fail')
         return BookingRecord['message']
-
 
 
 def __CollectionAPI__(BookingNumber, stationKey):

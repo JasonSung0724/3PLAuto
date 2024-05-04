@@ -7,6 +7,7 @@ from InternalAndCollectionUI import InternalAndCollection
 from OnlyInternalToteInAPI import OnlyInternalAPI
 from OnlyCollectionAPI import CollectionAPI
 from StockOutUI import StockOutAPI
+from BindingUI import StockInUI
 from GlobalVar import *
 
 
@@ -27,7 +28,8 @@ class ServiceSelectionFrame(wx.Frame):
         Result = cur.fetchone()
         TestEnv = Result[0]
         conn.commit()
-        self.ENVButton = wx.ToggleButton(panel, label=f"{TestEnv}", pos=(10, 250), size=(205, 80))
+        self.ENVButton = wx.ToggleButton(
+            panel, label=f"{TestEnv}", pos=(10, 250), size=(205, 80))
         self.ENVButton.Bind(wx.EVT_TOGGLEBUTTON, self.ENV_Setting)
         # self.BookingNumber_label = wx.StaticText(panel, label="Booking Number : ", pos=(15, 23))
         # self.BookingNumber_text = wx.TextCtrl(panel, value = BookingNumber , pos=(150, 20), size=(300, -1))
@@ -70,7 +72,6 @@ class ServiceSelectionFrame(wx.Frame):
         sizer.Add(self.Option7_radio, 0, wx.ALL | wx.EXPAND, 10)
         panel.SetSizer(sizer)
         self.current_frame = None
-        
 
     def on_select_service(self, event):
         selected_service = event.GetEventObject().GetLabel()
@@ -86,25 +87,28 @@ class ServiceSelectionFrame(wx.Frame):
             self.current_frame = CreateProduct()
         elif selected_service == 'Stock-out API':
             self.current_frame = StockOutAPI()
+            StockInUI
         if self.current_frame:
             self.current_frame.Show()
 
-    def ENV_Setting(self ,event):
+    def ENV_Setting(self, event):
         if self.ENVButton.GetValue():
             TestEnv = 'staging'
             self.ENVButton.SetLabel(f"{TestEnv}")
             print(TestEnv)
-            cur.execute(f"UPDATE `Var_3PL_Table` SET `TestEnv` = '{TestEnv}' WHERE ID = 1")
+            cur.execute(
+                f"UPDATE `Var_3PL_Table` SET `TestEnv` = '{TestEnv}' WHERE ID = 1")
             conn.commit()
             self.SetStatusText(f"ENV set to {TestEnv}")
         else:
             TestEnv = 'dev'
             self.ENVButton.SetLabel(f"{TestEnv}")
             print(TestEnv)
-            cur.execute(f"UPDATE `Var_3PL_Table` SET `TestEnv` = '{TestEnv}' WHERE ID = 1")
+            cur.execute(
+                f"UPDATE `Var_3PL_Table` SET `TestEnv` = '{TestEnv}' WHERE ID = 1")
             conn.commit()
             self.SetStatusText(f"ENV set to {TestEnv}")
-        
+
 
 class InternalToteIn(wx.Frame):
     def __init__(self):
