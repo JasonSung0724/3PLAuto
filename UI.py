@@ -7,7 +7,7 @@ from InternalAndCollectionUI import InternalAndCollection
 from OnlyInternalToteInAPI import OnlyInternalAPI
 from OnlyCollectionAPI import CollectionAPI
 from StockOutUI import StockOutAPI
-from BindingUI import StockInUI
+from stock
 from GlobalVar import *
 
 
