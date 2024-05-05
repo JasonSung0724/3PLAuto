@@ -3,6 +3,7 @@ from StockOut import __StockOutAPI__
 from GlobalVar import *
 BookingNumber = 'SOTY3F'
 
+
 class StockOutAPI(wx.Frame):
     def __init__(self):
         super().__init__(parent=None, title='Stcok-Out API Script', size=(300, 200))
@@ -24,16 +25,19 @@ class StockOutAPI(wx.Frame):
         Button.Bind(wx.EVT_BUTTON, lambda event: self.CheckStockOut())
 
     def CheckStockOut(self):
-        if len(BookingNumber) != 14 :
+        if len(BookingNumber) != 14:
             print("Booking Number Error")
             self.SetStatusText("Booking Number Error")
+            wx.MessageBox("Booking Number Error", 'Warning',
+                          wx.OK | wx.ICON_WARNING)
             return
         Status = __StockOutAPI__(BookingNumber)
         self.SetStatusText(Status)
-
+        wx.MessageBox(f"{Status}", 'Stock-out api result',
+                      wx.OK | wx.ICON_WARNING)
 
     def Set_Text_Value(self, event):
-        global  BookingNumber
+        global BookingNumber
         BookingNumber = self.BookingNumber_text.GetValue()
         if not BookingNumber.startswith('SOTY3F') or len(BookingNumber) > 14:
             self.BookingNumber_text.SetValue('SOTY3F')
@@ -42,7 +46,7 @@ class StockOutAPI(wx.Frame):
         key_code = event.GetKeyCode()
         BookingNumber = self.BookingNumber_text.GetValue()
         BookingLen = len(BookingNumber)
-        if key_code < wx.WXK_SPACE or key_code == wx.WXK_DELETE or key_code == wx.WXK_BACK or key_code == wx.WXK_RIGHT or  key_code == wx.WXK_LEFT:
+        if key_code < wx.WXK_SPACE or key_code == wx.WXK_DELETE or key_code == wx.WXK_BACK or key_code == wx.WXK_RIGHT or key_code == wx.WXK_LEFT:
             event.Skip()
             return
         if chr(key_code).isdigit():
@@ -71,7 +75,6 @@ class StockOutAPI(wx.Frame):
                     self.SetStatusText(f"Invalid paste ( {pasted_text} )")
                     return
         wx.Bell()
-
 
 
 if __name__ == "__main__":

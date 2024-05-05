@@ -130,11 +130,8 @@ if __name__ == "__main__":
     app = wx.App()
     frame = ServiceSelectionFrame()
     frame.Show()
-
-    log_window = LogWindow()  # 创建日志窗口
+    log_window = LogWindow()
     log_window.Show()
-
     __TPLCMSlogin__()
     __WMSLogin__()
-
     app.MainLoop()

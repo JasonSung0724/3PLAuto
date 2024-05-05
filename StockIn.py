@@ -104,16 +104,18 @@ def __StockInAPIFlow__(BookingNumber, StationKey):
                 toteCompleted.append(batch['toteCode'])
                 __M5102__(batch, StationKey)
         # M5104
-        time.sleep(3)
+        time.sleep(1)
         for toteCode in BookingDict.keys():
             __M5104__(toteCode, StationKey)
+            time.sleep(1)
 
         # M5112
-        time.sleep(3)
+        time.sleep(1)
         for toteCode in BookingDict.keys():
             __M5112__(toteCode)
+            time.sleep(1)
         # M5103
-        time.sleep(3)
+        time.sleep(1)
         __M5103__()
         print("Stock-in flow finished , please check booking status")
         BookingDict = {}
@@ -306,8 +308,8 @@ def __M5103__():
     Result = cur.fetchone()
     TestEnv = Result[0]
     conn.commit()
-    TotalData = []
     for toteCode in BookingDict.keys():
+        TotalData = []
         first_key = list(BookingDict[toteCode].keys())[0]
         dataDetail = {
             "containerCode": toteCode,
@@ -316,19 +318,19 @@ def __M5103__():
                         "taskNo": BookingDict[toteCode][first_key]['taskNo']
         }
         TotalData.append(dataDetail)
-
-    APIheaders = {"Content-Type": "application/json"}
-    M5103URL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/wcs/launch_container_report'
-    M5103Body = json.dumps({
-        "data": TotalData,
-        "msgId": "e4ef9fee-d6de-4bcc-9a90-cb1e091a6092",
-        "msgTime": "2021-09-01T19:02:33.597+08:00"
-    })
-    Response = requests.post(M5103URL, data=M5103Body,
-                             headers=APIheaders).json()
-    print(Response)
-    print("M5103 task completed")
-    print(M5103Body)
+        APIheaders = {"Content-Type": "application/json"}
+        M5103URL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/wcs/launch_container_report'
+        M5103Body = json.dumps({
+            "data": TotalData,
+            "msgId": "e4ef9fee-d6de-4bcc-9a90-cb1e091a6092",
+            "msgTime": "2021-09-01T19:02:33.597+08:00"
+        })
+        Response = requests.post(M5103URL, data=M5103Body,
+                                 headers=APIheaders).json()
+        print(Response)
+        print("M5103 task completed")
+        print(M5103Body)
+        time.sleep(1)
 
 
 # __StockInAPIFlow__("SITY3F00004245", "102")
