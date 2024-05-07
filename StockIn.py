@@ -18,7 +18,12 @@ def __GetBookingInfo__(BookingNumber):
     Result = cur.fetchone()
     TestEnv = Result[0]
     conn.commit()
-    WMSheaders = {'Authorization': f'Bearer {WMStoken}'}
+    if TestEnv == 'dev':
+        WMSheaders = {'Authorization': f'Bearer {WMStoken}'
+                    }
+    else:
+        WMSheaders = {'authorization': f'Bearer {WMStoken}'
+                    }
     GetBookingInfoURL = f'https://mwms-whtsy-dev.hkmpcl.com.hk/hktv_ty_mwms/cms/tote/booking_job/tote_record?bookingType=Stock+In&bookingNo={BookingNumber}&pageNo=1&pageSize=100'
     BookingResponse = requests.get(GetBookingInfoURL, headers=WMSheaders)
     BookingInfo = BookingResponse.json()
@@ -104,18 +109,18 @@ def __StockInAPIFlow__(BookingNumber, StationKey):
                 toteCompleted.append(batch['toteCode'])
                 __M5102__(batch, StationKey)
         # M5104
-        time.sleep(1)
+        time.sleep(2)
         for toteCode in BookingDict.keys():
             __M5104__(toteCode, StationKey)
-            time.sleep(1)
+            time.sleep(2)
 
         # M5112
-        time.sleep(1)
+        time.sleep(2)
         for toteCode in BookingDict.keys():
             __M5112__(toteCode)
-            time.sleep(1)
+            time.sleep(2)
         # M5103
-        time.sleep(1)
+        time.sleep(2)
         __M5103__()
         print("Stock-in flow finished , please check booking status")
         BookingDict = {}
@@ -330,7 +335,7 @@ def __M5103__():
         print(Response)
         print("M5103 task completed")
         print(M5103Body)
-        time.sleep(1)
+        time.sleep(2)
 
 
 # __StockInAPIFlow__("SITY3F00004245", "102")

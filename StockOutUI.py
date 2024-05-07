@@ -14,6 +14,7 @@ class StockOutAPI(wx.Frame):
         self.GetStatusBar().SetFont(font)
         self.BookingNumber_lable = wx.StaticText(
             panel, label="* Booking Number", pos=(15, 23))
+        wx.MessageBox("確認你已經創建好訂單而且狀態是Preparing\n輸入定但後按下Run即可\n執行後確認訂單轉為Ready後，可自行前往站台輸入單號完成退倉流程。")
         self.BookingNumber_text = wx.TextCtrl(
             panel, value=BookingNumber, pos=(15, 50), size=(120, -1))
         self.BookingNumber_text.Bind(wx.EVT_TEXT, self.Set_Text_Value)

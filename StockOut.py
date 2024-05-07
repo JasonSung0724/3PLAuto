@@ -4,9 +4,12 @@ import re
 import time
 from GlobalVar import *
 import math
+from internalToteIn import __WMSLogin__
+
 
 
 def __StockOutAPI__(BookingNumber):
+    __WMSLogin__()
     Consolidation = __ConsolidationTaskHandle__(BookingNumber)
     time.sleep(3)
     CycleCount = __CycleCount__(BookingNumber)
@@ -22,31 +25,39 @@ def __StockOutAPI__(BookingNumber):
 def __GetBookingInfo__(BookingNumber):
     cur.execute("SELECT TestEnv FROM `Var_3PL_Table` WHERE ID = 1")
     Result = cur.fetchone()
-    TestEnv = Result[0]
-    conn.commit()
-    GetStockOutInfoURL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/cms/tote/booking_job/tote_record?bookingType=Stock+Out&bookingNo={BookingNumber}&pageNo=1&pageSize=100'
+    TestEnv = Result[0]                           
     cur.execute("SELECT WMStoken FROM `Var_3PL_Table` WHERE ID = 1")
     WMStokenResult = cur.fetchone()
     WMStoken = WMStokenResult[0]
     conn.commit()
-    WMSheaders = {'Authorization': f'Bearer {WMStoken}'}
-    BookingInfoResponse = requests.get(
-        GetStockOutInfoURL, headers=WMSheaders).json()
-    print(BookingInfoResponse)
-    try:
-        BatchQTY = BookingInfoResponse['data']['pagination']['totalElements']
-        print(f"Stock-out {BatchQTY} batch")
-        BatchDict = {}
-        if BatchQTY <= 100:
-            BookingInfoList = BookingInfoResponse['data']['bookingRecords']
-            for batch in BookingInfoList:
-                BatchDict[batch['batchId']] = batch
-        print(BatchDict)
-        return BatchDict
-    except:
-        print("Get stock-out booking fail")
-        return "Get stock-out booking fail"
-
+    GetStockOutInfoURL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/cms/tote/booking_job/tote_record?bookingType=Stock+Out&bookingNo={BookingNumber}&pageNo=1&pageSize=100'
+    print(GetStockOutInfoURL)
+    if TestEnv == 'dev':
+        WMSheaders = {'Authorization': f'Bearer {WMStoken}'}
+    else:
+        WMSheaders = {'authorization': f'Bearer {WMStoken}'}
+    print(WMSheaders)
+    print("Get stock out booking info")
+    BookingInfoResponse = requests.get(GetStockOutInfoURL, headers=WMSheaders)
+    if BookingInfoResponse.status_code == 200 :
+        try:
+            print(BookingInfoResponse.json())
+            BatchQTY = BookingInfoResponse['data']['pagination']['totalElements']
+            print(f"Stock-out {BatchQTY} batch")
+            BatchDict = {}
+            if BatchQTY <= 100:
+                BookingInfoList = BookingInfoResponse['data']['bookingRecords']
+                for batch in BookingInfoList:
+                    BatchDict[batch['batchId']] = batch
+            print(BatchDict)
+            return BatchDict
+        except:
+            print("Get stock-out booking fail")
+            return "Get stock-out booking fail"
+    else:
+        print(f"Get Booking Fail status code : {BookingInfoResponse.status_code}")
+        return f"Get Booking Fail status code : {BookingInfoResponse.status_code}"
+    
 
 def __ConsolidationTaskHandle__(BookingNumber):
     cur.execute("SELECT TestEnv FROM `Var_3PL_Table` WHERE ID = 1")
@@ -143,7 +154,10 @@ def __GetTotes__(CompartmentType, TotesQty):
     Result = cur.fetchone()
     TestEnv = Result[0]
     conn.commit()
-    WMSheaders = {'Authorization': f'Bearer {WMStoken}'}
+    if TestEnv == 'dev':
+        WMSheaders = {'Authorization': f'Bearer {WMStoken}'}
+    else:
+        WMSheaders = {'authorization': f'Bearer {WMStoken}'}
     GetTotesURL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/cms/inventory_tote?pageNo=1&pageSize=200&sort=toteCode:asc&status=Available+for+rent&warehouseCode=TY3F&toteType={CompartmentType}&locationType=In+System'
     GetToteResponse = requests.get(GetTotesURL, headers=WMSheaders).json()
     TotesRecord = GetToteResponse['data']['totes']
@@ -166,7 +180,10 @@ def __GetSKUinfo__(uuid):
     WMStokenResult = cur.fetchone()
     WMStoken = WMStokenResult[0]
     conn.commit()
-    WMSheaders = {'Authorization': f'Bearer {WMStoken}'}
+    if TestEnv == 'dev':
+        WMSheaders = {'Authorization': f'Bearer {WMStoken}'}
+    else:
+        WMSheaders = {'authorization': f'Bearer {WMStoken}'}
     Response = requests.get(url=URL, headers=WMSheaders).json()
     SKUinfo = Response['data']['skuInventories'][0]
     return SKUinfo
@@ -298,5 +315,5 @@ def __WeigthCheck__(BookingNumber):
     else:
         return False
 
-
-# __StockOutAPI__("SOTY3F00001034")
+# __WMSLogin__()
+# __StockOutAPI__("SOTY3F00000671")

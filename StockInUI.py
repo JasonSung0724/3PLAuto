@@ -23,7 +23,7 @@ BindingTote = ''
 class StockInUI(wx.Frame):
     def __init__(self):
         global MMSAccount, MMSPassword
-        super().__init__(parent=None, title='Stock-in UI', size=(330, 450))
+        super().__init__(parent=None, title='Stock-in UI', size=(330, 480))
         panel = wx.Panel(self)
         self.CreateStatusBar()
         font = wx.Font(12, wx.FONTFAMILY_DEFAULT,
@@ -39,6 +39,7 @@ class StockInUI(wx.Frame):
         Result = cur.fetchone()
         MMSPassword = Result[0]
         conn.commit()
+        wx.MessageBox("你可以自行創建訂單做完前置任務後，只在該介面輸入訂單號且進入站台後就可以按下Run Stock-in API flow\n你也可以輸入MMS帳號/密碼，在該介面創建Stock-in訂單以及MerchantAPP的綁定操作\n綁定後記得按下Send bind list，完成後進入工作站並按下Run stock-in API flow")
         self.Binding_label = wx.StaticText(
             panel, label="---------------------Binding Tote---------------------", pos=(15, 200))
         self.BookingNumber_lable = wx.StaticText(
@@ -47,7 +48,7 @@ class StockInUI(wx.Frame):
             panel, value=BookingNumber, pos=(90, 17), size=(150, -1))
         self.BookingNumber_text.Bind(wx.EVT_TEXT, self.Set_Text_Value)
         self.BookingNumber_text.Bind(wx.EVT_CHAR, self.OnKeyPressBooking)
-        Buttonfont = wx.Font(15, wx.FONTFAMILY_DEFAULT,
+        Buttonfont = wx.Font(13, wx.FONTFAMILY_DEFAULT,
                              wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
         self.MMSLogin = wx.Button(
             panel, label="MMS登入更新token", pos=(15, 135), size=(290, 30))
@@ -89,7 +90,7 @@ class StockInUI(wx.Frame):
         self.ExcecueButton.SetFont(Buttonfont)
         self.ExcecueButton.Bind(
             wx.EVT_BUTTON, lambda event:  self.RunStockIn())
-        self.ExcecueButton.SetBackgroundColour(wx.BLUE)
+        self.ExcecueButton.SetBackgroundColour(wx.GREEN)
 
         self.StorageTypeButton = wx.ToggleButton(
             panel, label="Ambient",  pos=(150, 102), size=(155, 30))
@@ -100,25 +101,25 @@ class StockInUI(wx.Frame):
         self.ENVButton.Bind(wx.EVT_TOGGLEBUTTON, self.ENV_Setting)
 
         self.GetTY11Btn = wx.Button(
-            panel, label="GET TY11", pos=(15, 200), size=(95, 70))
+            panel, label="GET TY11", pos=(15, 220), size=(95, 50))
         self.GetTY11Btn.Bind(
             wx.EVT_BUTTON, lambda event:  self.GetTotes("TY11", inUseTY11))
         self.GetTY12Btn = wx.Button(
-            panel, label="GET TY12", pos=(112, 200), size=(95, 70))
+            panel, label="GET TY12", pos=(112, 220), size=(95, 50))
         self.GetTY12Btn.Bind(
             wx.EVT_BUTTON, lambda event:  self.GetTotes("TY12", inUseTY12))
         self.GetTY14Btn = wx.Button(
-            panel, label="GET TY14", pos=(210, 200), size=(95, 70))
+            panel, label="GET TY14", pos=(210, 220), size=(95, 50))
         self.GetTY14Btn.Bind(
             wx.EVT_BUTTON, lambda event:  self.GetTotes("TY14", inUseTY14))
 
         self.BindingTote_label = wx.StaticText(
-            panel, label="Binding Tote Check", pos=(20, 290))
+            panel, label="Binding Tote Check", pos=(20, 280))
         self.BindingTote_Text = wx.TextCtrl(
-            panel, value=BindingTote, pos=(15, 310), size=(120, 20))
+            panel, value=BindingTote, pos=(15, 300), size=(120, 20))
         self.BindingTote_Text.Bind(wx.EVT_TEXT, self.Set_Text_Value)
         self.CheckToteBtn = wx.Button(
-            panel, label="Check Tote", pos=(140, 282), size=(165, 50))
+            panel, label="Check Tote", pos=(140, 272), size=(165, 50))
         self.CheckToteBtn.Bind(
             wx.EVT_BUTTON, lambda event:  self.CheckTote(BindingTote))
         self.SendBindListButton = wx.Button(
@@ -201,7 +202,10 @@ class StockInUI(wx.Frame):
             inUseTY12 += 1
         elif ToteType == "TY14":
             inUseTY14 += 1
-        WMSheaders = {'Authorization': f'Bearer {WMStoken}'}
+        if TestEnv == 'dev':
+            WMSheaders = {'Authorization': f'Bearer {WMStoken}'}
+        else:
+            WMSheaders = {'authorization': f'Bearer {WMStoken}'}
         GetTotesURL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/cms/inventory_tote?pageNo=1&pageSize=200&sort=toteCode:asc&locationType=Hold+by+Merchant&status=On+rent&warehouseCode=TY3F&toteType={ToteType}'
         GetToteResponse = requests.get(GetTotesURL, headers=WMSheaders).json()
         TotesRecord = GetToteResponse['data']['totes']

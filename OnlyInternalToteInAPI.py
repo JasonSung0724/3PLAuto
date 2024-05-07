@@ -1,5 +1,5 @@
 import wx
-from ToteRegistration import __TPLCMSlogin__, __NewToteRegistration__
+from ToteRegistration import __TPLCMSlogin__, __NewToteRegistration__ , __BatchUploadTotes__
 from GlobalVar import *
 from StationFlow import __KIOSKFlow__
 from ToteCollection import __MMSlogin__, __CollectionAPI__, __CreateCollectionBooking__
@@ -21,6 +21,7 @@ class OnlyInternalAPI(wx.Frame):
         font = wx.Font(12, wx.FONTFAMILY_DEFAULT,
                        wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
         self.GetStatusBar().SetFont(font)
+        wx.MessageBox("你只需要從TPLCMS中 MIX CMS > Tote no management 產生Tote\n無須丟去註冊，直接點及介面中的Upload excel即可註冊Tote\nCreate Booking可依照你剛才註冊的箱子自動創建Internal Tote-in訂單\n自行進入工作站後按下Run即可")
         self.BookingNumber_lable = wx.StaticText(
             panel, label="* Booking Number", pos=(15, 23))
         self.BookingNumber_text = wx.TextCtrl(
@@ -182,6 +183,10 @@ class OnlyInternalAPI(wx.Frame):
             data = data[:-1]
         print(data)
         self.GetTotes_text.SetValue(data)
+        ToteList = []
+        for toteCode in data.split(',') :
+            ToteList.append(toteCode)
+        __BatchUploadTotes__(ToteList)
 
 
 if __name__ == "__main__":

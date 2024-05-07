@@ -61,7 +61,7 @@ class ServiceSelectionFrame(wx.Frame):
         self.Option3_radio = wx.RadioButton(
             panel, label='Only tote collection API')
         self.Option4_radio = wx.RadioButton(
-            panel, label='Stock-in full function')
+            panel, label='Stock-in binding + API')
         self.Option5_radio = wx.RadioButton(panel, label='Stock-out API')
         self.Option6_radio = wx.RadioButton(panel, label='Create Product')
 
@@ -102,7 +102,7 @@ class ServiceSelectionFrame(wx.Frame):
             self.current_frame = CreateProduct()
         elif selected_service == 'Stock-out API':
             self.current_frame = StockOutAPI()
-        elif selected_service == 'Stock-in full function':
+        elif selected_service == 'Stock-in binding + API':
             self.current_frame = StockInUI()
         if self.current_frame:
             self.current_frame.Show()

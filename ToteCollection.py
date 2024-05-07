@@ -225,7 +225,10 @@ def __GetCollectionBookingInfo__(BookingNumber):
     WMStoken = WMStokenResult[0]
     conn.commit()
     GetURL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/cms/tote/booking_job?startTimestamp={StartDateTime}&endTimestamp={EndDateTime}&bookingType=Tote+Collect&pageNo=1&pageSize=30'
-    WMSheaders = {'Authorization': f'Bearer {WMStoken}'}
+    if TestEnv == 'dev':
+        WMSheaders = {'Authorization': f'Bearer {WMStoken}'}
+    else:
+        WMSheaders = {'authorization': f'Bearer {WMStoken}'}
     Response = requests.get(GetURL, headers=WMSheaders).json()
     print(Response)
     BookingList = Response['data']['bookingDetails']
@@ -255,7 +258,10 @@ def __CollectionGetTotes__(CompartmentType, TotesQty):
     WMStokenResult = cur.fetchone()
     WMStoken = WMStokenResult[0]
     conn.commit()
-    WMSheaders = {'Authorization': f'Bearer {WMStoken}'}
+    if TestEnv == 'dev':
+        WMSheaders = {'Authorization': f'Bearer {WMStoken}'}
+    else:
+        WMSheaders = {'authorization': f'Bearer {WMStoken}'}
     GetTotesURL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/cms/inventory_tote?pageNo=1&pageSize=200&sort=toteCode:asc&status=Available+for+rent&warehouseCode=TY3F&toteType={CompartmentType}&locationType=In+System'
     GetToteResponse = requests.get(GetTotesURL, headers=WMSheaders).json()
     TotesRecord = GetToteResponse['data']['totes']

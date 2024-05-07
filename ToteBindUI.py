@@ -18,8 +18,8 @@ class FourCompartment(wx.Dialog):
         self.SetTitle("Tote Binding")
         panel = wx.Panel(self)
         self.TextLable = wx.StaticText(
-            panel, label=f"輸入EAN到箱子,全部完成後按下SAVE \n訂單:{BookingNumber} -綁定{ToteCode}", pos=(30, 10))
-        size = (120, 120)
+            panel, label=f"輸入EAN+數量到輸入框,全部完成後按下SAVE \n訂單:{BookingNumber} -綁定{ToteCode}", pos=(30, 10))
+        size = (120, 90)
         boxsize = (50, 30)
         self.BookingNumber = BookingNumber
         self.ToteCode = ToteCode
@@ -48,6 +48,7 @@ class FourCompartment(wx.Dialog):
             panel, value="", size=boxsize, pos=(230, 280))
         self.QTY4_text.SetBackgroundColour(wx.YELLOW)
         self.QTY4_text.Bind(wx.EVT_CHAR, self.OnKeyPress)
+
 
         self.save_button = wx.Button(
             panel, label='Save', pos=(20, 320), size=(260, 40))
@@ -164,10 +165,10 @@ class TwoCompartment(wx.Dialog):
         self.SetTitle("Tote Binding")
         panel = wx.Panel(self)
         self.TextLable = wx.StaticText(
-            panel, label=f"輸入EAN到箱子,全部完成後按下SAVE \n訂單:{BookingNumber} -綁定{ToteCode}", pos=(20, 10))
+            panel, label=f"輸入EAN+數量到輸入框,全部完成後按下SAVE\n訂單:{BookingNumber} -綁定{ToteCode}", pos=(20, 10))
         self.BookingNumber = BookingNumber
         self.ToteCode = ToteCode
-        size = (120, 120)
+        size = (120, 90)
         boxsize = (50, 30)
         self.Batch1_text = wx.TextCtrl(
             panel, value=Batch1, size=size, pos=(20, 60))
@@ -182,6 +183,7 @@ class TwoCompartment(wx.Dialog):
             panel, value="", size=boxsize, pos=(230, 150))
         self.QTY2_text.SetBackgroundColour(wx.YELLOW)
         self.QTY2_text.Bind(wx.EVT_CHAR, self.OnKeyPress)
+
 
         self.save_button = wx.Button(
             panel, label='Save', pos=(20, 200), size=(260, 40))
@@ -281,14 +283,14 @@ class TwoCompartment(wx.Dialog):
 class OneCompartment(wx.Dialog):
     def __init__(self, parent, ToteCode, BookingNumber):
         super(OneCompartment, self).__init__(
-            parent, title="Tote Binding", size=(260, 300))
+            parent, title="Tote Binding", size=(280, 320))
         self.SetTitle("Tote Binding")
         panel = wx.Panel(self)
         self.TextLable = wx.StaticText(
-            panel, label=f"輸入EAN到箱子,全部完成後按下SAVE \n訂單:{BookingNumber} -綁定{ToteCode}", pos=(10, 10))
+            panel, label=f"輸入EAN+數量到輸入框,全部完成後按下SAVE \n訂單:{BookingNumber} -綁定{ToteCode}", pos=(10, 10))
         self.BookingNumber = BookingNumber
         self.ToteCode = ToteCode
-        size = (170, 170)
+        size = (170, 140)
         boxsize = (50, 30)
         self.Batch1_text = wx.TextCtrl(
             panel, value=Batch1, size=size, pos=(45, 45))
@@ -296,6 +298,7 @@ class OneCompartment(wx.Dialog):
             panel, value="", size=boxsize, pos=(165, 185))
         self.QTY1_text.SetBackgroundColour(wx.YELLOW)
         self.QTY1_text.Bind(wx.EVT_CHAR, self.OnKeyPress)
+        self.QTY1_text.Raise()
 
         self.save_button = wx.Button(
             panel, label='Save', pos=(30, 230), size=(200, 40))
@@ -365,7 +368,7 @@ class OneCompartment(wx.Dialog):
 class RunStockInAPI(wx.Dialog):
     def __init__(self, parent, BookingNumber):
         super(RunStockInAPI, self).__init__(
-            parent, title="Run Stock-In API", size=(260, 160))
+            parent, title="Run Stock-In API", size=(260, 180))
         self.SetTitle("Run Stock-In API")
         self.BookingNumber = BookingNumber
         panel = wx.Panel(self)

@@ -16,12 +16,20 @@ TY14 = 0
 class InternalAndCollection(wx.Frame):
 
     def __init__(self):
-        super().__init__(parent=None, title='Internal tote-in + Tote collection', size=(400, 220))
+        super().__init__(parent=None, title='Internal tote-in + Tote collection', size=(500, 220))
         panel = wx.Panel(self)
         self.CreateStatusBar()
         font = wx.Font(12, wx.FONTFAMILY_DEFAULT,
                        wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
         self.GetStatusBar().SetFont(font)
+        cur.execute("SELECT MMSAccount FROM `Var_3PL_Table` WHERE ID = 1")
+        Result = cur.fetchone()
+        MMSAccount = Result[0]
+        cur.execute("SELECT MMSPassword FROM `Var_3PL_Table` WHERE ID = 1")
+        Result = cur.fetchone()
+        MMSPassword = Result[0]
+        conn.commit()
+        wx.MessageBox('此介面比較不穩定，他會自己打開Staion站台\n當Station開太慢時會導致出錯\n若要使用該功能請填好介面上所有欄位\n然後耐心等待...\n他會去MIX註冊新Tote > WMS創建Internal Tote-in訂單\n自己打開Station介面Call internal tote-in訂單\n並在你輸入的MMS帳號創一張Collection訂單 > 自動打開Station介面\nCall collection API完成所有操作','說明',wx.OK|wx.ICON_WARNING)
         self.InternalStation_label = wx.StaticText(
             panel, label="Internal Tote-in Station", pos=(15, 23))
         self.InternalStation_text = wx.TextCtrl(
@@ -49,10 +57,19 @@ class InternalAndCollection(wx.Frame):
             TY14), pos=(170, 120), size=(50, -1))
         self.TY14_text.Bind(wx.EVT_TEXT, self.Set_Text_Value)
         self.TY14_text.Bind(wx.EVT_CHAR, self.OnKeyPress)
+        self.Account_lable = wx.StaticText(
+            panel, label="MMS帳號", pos=(240, 23))
+        self.Account_text = wx.TextCtrl(
+            panel, value=MMSAccount, pos=(300, 20), size=(150, -1))
+        self.password_lable = wx.StaticText(
+            panel, label="MMS密碼", pos=(240, 48))
+        self.password_text = wx.TextCtrl(
+            panel, value=MMSPassword, pos=(300, 45), size=(150, -1))
+
 
         Buttonfont = wx.Font(15, wx.FONTFAMILY_DEFAULT,
                              wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
-        Button = wx.Button(panel, label="RUN", pos=(250, 80), size=(130, 70))
+        Button = wx.Button(panel, label="RUN", pos=(320, 80), size=(130, 70))
         Button.SetFont(Buttonfont)
         Button.Bind(wx.EVT_BUTTON, lambda event: self.__InternalToteInAndToteCollection__(
             TY11, TY12, TY14))
@@ -111,6 +128,11 @@ class InternalAndCollection(wx.Frame):
         wx.Bell()
 
     def __InternalToteInAndToteCollection__(self, TY11=0, TY12=0, TY14=0):
+        MMSAccount = self.Account_text.GetValue()
+        MMSPassword = self.password_text.GetValue()
+        cur.execute(f"UPDATE `Var_3PL_Table` SET `MMSAccount` = '{MMSAccount}' WHERE ID = 1")
+        cur.execute(f"UPDATE `Var_3PL_Table` SET `MMSPassword` = '{MMSPassword}' WHERE ID = 1")
+        conn.commit()
         if InternalStation.startswith("1"):
             self.InternalStation_text.SetValue("101")
         if CollectionStation != "503" and CollectionStation != "751":
@@ -134,13 +156,13 @@ class InternalAndCollection(wx.Frame):
             return
         if TY11 + TY12 + TY14 == 0:
             self.SetStatusText("Select at least one tote")
+            wx.MessageBox('箱子數量未輸入','Warning',wx.OK|wx.ICON_ERROR)
             return
-        __TPLCMSlogin__()
-        __WMSLogin__()
+        if type(__MMSlogin__(MMSAccount, MMSPassword)) == int:
+            wx.MessageBox("MMS登入失敗，請檢查帳號密碼是否正確","Warning",wx.OK|wx.ICON_ERROR)
         totelist = __NewToteRegistration__(TY11, TY12, TY14)
         bookingNumber = __CreateInternalToteInBooking__(totelist)
         __KIOSKFlow__(bookingNumber, InternalStation, totelist)
-        __MMSlogin__(MMSAccount, MMSPassword)
         BookingNumber = __CreateCollectionBooking__(
             TY11, TY12, TY14)
         __KIOSKFlow__(BookingNumber, CollectionStation, totelist)

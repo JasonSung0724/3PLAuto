@@ -1,4 +1,5 @@
-import requests
+import requests , mimetypes 
+import pandas as pd
 import time
 import json
 from GlobalVar import *
@@ -70,7 +71,7 @@ def __NewToteRegistration__(TY11=0, TY12=0, TY14=0):
                 retry += 1
                 print("Get wrong generate tote record , retry...")
         ToteList_str = json.dumps(
-            __SingleRegisterTote__(registerTote, headers))
+            __BatchUploadTotes__(registerTote))
         cur.execute(
             f"UPDATE `Var_3PL_Table` SET `NewRegisterToteList` = ? WHERE ID = 1", (ToteList_str,))
         conn.commit()
@@ -80,14 +81,43 @@ def __NewToteRegistration__(TY11=0, TY12=0, TY14=0):
     return registerTote
 
 
-def __SingleRegisterTote__(ToteList, headers):
-    print("Single tote registration...")
+# def __SingleRegisterTote__(ToteList, headers):
+#     print("Single tote registration...")
+#     cur.execute("SELECT TestEnv FROM `Var_3PL_Table` WHERE ID = 1")
+#     Result = cur.fetchone()
+#     TestEnv = Result[0]
+#     conn.commit()
+#     for tote in ToteList:
+#         SingleRegistrationURL = f'https://mix-{TestEnv.lower()}.hkmpcl.com.hk/hktv_mix/cms/inventory_tote/totes/{tote}'
+#         requests.put(SingleRegistrationURL, headers=headers)
+#     print(ToteList)
+#     return ToteList
+
+def __BatchUploadTotes__(totecode):
+    print(totecode)
+    cur.execute("SELECT MIXtoken FROM `Var_3PL_Table` WHERE ID = 1")
+    Result = cur.fetchone()
+    MIXtoken = Result[0]
     cur.execute("SELECT TestEnv FROM `Var_3PL_Table` WHERE ID = 1")
     Result = cur.fetchone()
     TestEnv = Result[0]
     conn.commit()
-    for tote in ToteList:
-        SingleRegistrationURL = f'https://mix-{TestEnv.lower()}.hkmpcl.com.hk/hktv_mix/cms/inventory_tote/totes/{tote}'
-        requests.put(SingleRegistrationURL, headers=headers)
-    print(ToteList)
-    return ToteList
+    data = {'Tote Code': totecode}
+    df = pd.DataFrame(data)
+    excel_file = 'ToteCodeList.xlsx' 
+    df.to_excel(excel_file, index=False)
+    upload_url = f'https://mix-{TestEnv.lower()}.hkmpcl.com.hk/hktv_mix/cms/inventory_tote/upload'
+    headers = {
+        "Authorization": f"Bearer {MIXtoken}",
+    }
+    mime_type, _ = mimetypes.guess_type('ToteCodeList.xlsx')
+    files = {
+        'file': ('ToteCodeList.xlsx',open('ToteCodeList.xlsx', 'rb'),mime_type)
+    }
+    response = requests.post(upload_url, headers=headers, files=files)
+    if response.status_code == 200 :
+        print("Batch upload totes to MIX successfully")
+        print(response.json())
+    return totecode
+
+# __NewToteRegistration__(5,5,5)
