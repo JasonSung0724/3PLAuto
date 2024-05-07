@@ -47,10 +47,16 @@ def __CreateInternalToteInBooking__(ToteList):
     cur.execute("SELECT TestEnv FROM `Var_3PL_Table` WHERE ID = 1")
     Result = cur.fetchone()
     TestEnv = Result[0]
+    cur.execute("SELECT WMStoken FROM `Var_3PL_Table` WHERE ID = 1")
+    Result = cur.fetchone()
+    WMStoken = Result[0]
     conn.commit()
     CreateBookingURL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/cms/inventory_tote/internal/booking'
     Payload = {"toteCodes": ToteList}
-    headers = {'Authorization': f'Bearer {WMStoken}'}
+    if TestEnv == 'dev':
+        headers = {'Authorization': f'Bearer {WMStoken}'}
+    else:
+        headers = {'authorization': f'Bearer {WMStoken}'}
     retry = 0
     while retry < 4:
         BookingResponse = requests.post(
@@ -108,3 +114,4 @@ def __InternalToteInAPI__(BookingNumber, StationKey, ToteList):
         M5102SendRequsets = requests.post(
             M5102URL, json=M5102Body, headers=APIheaders).json()
         print(M5102SendRequsets)
+    print("Internal API flow compledted")
