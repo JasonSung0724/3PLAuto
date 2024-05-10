@@ -7,7 +7,6 @@ import math
 from internalToteIn import __WMSLogin__
 
 
-
 def __StockOutAPI__(BookingNumber):
     __WMSLogin__()
     Consolidation = __ConsolidationTaskHandle__(BookingNumber)
@@ -25,7 +24,7 @@ def __StockOutAPI__(BookingNumber):
 def __GetBookingInfo__(BookingNumber):
     cur.execute("SELECT TestEnv FROM `Var_3PL_Table` WHERE ID = 1")
     Result = cur.fetchone()
-    TestEnv = Result[0]                           
+    TestEnv = Result[0]
     cur.execute("SELECT WMStoken FROM `Var_3PL_Table` WHERE ID = 1")
     WMStokenResult = cur.fetchone()
     WMStoken = WMStokenResult[0]
@@ -39,25 +38,28 @@ def __GetBookingInfo__(BookingNumber):
     print(WMSheaders)
     print("Get stock out booking info")
     BookingInfoResponse = requests.get(GetStockOutInfoURL, headers=WMSheaders)
-    if BookingInfoResponse.status_code == 200 :
+    Bookinginfo = BookingInfoResponse.json()
+    if BookingInfoResponse.status_code == 200:
         try:
-            print(BookingInfoResponse.json())
-            BatchQTY = BookingInfoResponse['data']['pagination']['totalElements']
+            print(Bookinginfo)
+            BatchQTY = Bookinginfo['data']['pagination']['totalElements']
             print(f"Stock-out {BatchQTY} batch")
             BatchDict = {}
             if BatchQTY <= 100:
-                BookingInfoList = BookingInfoResponse['data']['bookingRecords']
+                BookingInfoList = Bookinginfo['data']['bookingRecords']
                 for batch in BookingInfoList:
                     BatchDict[batch['batchId']] = batch
             print(BatchDict)
             return BatchDict
         except:
-            print("Get stock-out booking fail")
-            return "Get stock-out booking fail"
+            print(
+                f"Get stock-out booking fail {BookingInfoResponse.status_code}")
+            return f"Get stock-out booking fail {BookingInfoResponse.status_code}"
     else:
-        print(f"Get Booking Fail status code : {BookingInfoResponse.status_code}")
+        print(
+            f"Get Booking Fail status code : {BookingInfoResponse.status_code}")
         return f"Get Booking Fail status code : {BookingInfoResponse.status_code}"
-    
+
 
 def __ConsolidationTaskHandle__(BookingNumber):
     cur.execute("SELECT TestEnv FROM `Var_3PL_Table` WHERE ID = 1")
@@ -68,11 +70,12 @@ def __ConsolidationTaskHandle__(BookingNumber):
     TaskNoResponse = requests.get(GetTaskNoURL).json()
     print("Consolidation Get Task Number : " + TaskNoResponse['resultStatus'])
     SKUdict = __GetBookingInfo__(BookingNumber)
-    if type(SKUdict) == str :
+    if type(SKUdict) == str:
         return SKUdict
     if TaskNoResponse['resultStatus'] == "SUCCESS":
         TaskList = TaskNoResponse['responseData']
         for Task in TaskList:
+            time.sleep(3)
             TaskNo = Task['taskNo']
             Compartment = Task['batches'][0]['fromTote']
             if Compartment.startswith("14"):
@@ -207,6 +210,7 @@ def __CycleCount__(BookingNumber):
             else:
                 TaskDict[batches['taskNo']].append(batches['batchId'])
         for task, batchid in TaskDict.items():
+            time.sleep(3)
             M5108TotalDetail = []
             # 處理同一個隔層內有兩個Batch ID 的髒資料
             try:
@@ -289,6 +293,7 @@ def __WeigthCheck__(BookingNumber):
     if TaskNoResponse['resultStatus'] == "SUCCESS":
         TaskList = TaskNoResponse['responseData']
         for task in TaskList:
+            time.sleep(3)
             TaskNo = task['taskNo']
             ToteCode = task['toteCode']
             CorrectWeigth = float(

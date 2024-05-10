@@ -10,7 +10,6 @@ BookingDict = {}
 
 def __GetBookingInfo__(BookingNumber):
     global BookingDict
-    __WMSLogin__()
     cur.execute("SELECT WMStoken FROM `Var_3PL_Table` WHERE ID = 1")
     WMStokenResult = cur.fetchone()
     WMStoken = WMStokenResult[0]
@@ -20,10 +19,10 @@ def __GetBookingInfo__(BookingNumber):
     conn.commit()
     if TestEnv == 'dev':
         WMSheaders = {'Authorization': f'Bearer {WMStoken}'
-                    }
+                      }
     else:
         WMSheaders = {'authorization': f'Bearer {WMStoken}'
-                    }
+                      }
     GetBookingInfoURL = f'https://mwms-whtsy-dev.hkmpcl.com.hk/hktv_ty_mwms/cms/tote/booking_job/tote_record?bookingType=Stock+In&bookingNo={BookingNumber}&pageNo=1&pageSize=100'
     BookingResponse = requests.get(GetBookingInfoURL, headers=WMSheaders)
     BookingInfo = BookingResponse.json()

@@ -116,6 +116,8 @@ class ServiceSelectionFrame(wx.Frame):
                 f"UPDATE `Var_3PL_Table` SET `TestEnv` = '{TestEnv}' WHERE ID = 1")
             conn.commit()
             self.SetStatusText(f"ENV set to {TestEnv}")
+            __TPLCMSlogin__()
+            __WMSLogin__()
         else:
             TestEnv = 'dev'
             self.ENVButton.SetLabel(f"{TestEnv}")
@@ -124,6 +126,8 @@ class ServiceSelectionFrame(wx.Frame):
                 f"UPDATE `Var_3PL_Table` SET `TestEnv` = '{TestEnv}' WHERE ID = 1")
             conn.commit()
             self.SetStatusText(f"ENV set to {TestEnv}")
+            __TPLCMSlogin__()
+            __WMSLogin__()
 
 
 if __name__ == "__main__":

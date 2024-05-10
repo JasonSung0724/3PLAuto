@@ -1,6 +1,7 @@
 import wx
 import time
 import requests
+from ToteRegistration import __TPLCMSlogin__
 from ToteCollection import __CreateCollectionBooking__, __MMSlogin__, __CollectionAPI__
 from internalToteIn import __WMSLogin__
 from Binding import __CreateStockInBooking__, __CheckTote__, __CheckBookingExist__, __SendBindListToMIX__
@@ -223,6 +224,8 @@ class StockInUI(wx.Frame):
             cur.execute(
                 f"UPDATE `Var_3PL_Table` SET `TestEnv` = '{env}' WHERE ID = 1")
             conn.commit()
+            __TPLCMSlogin__()
+            __WMSLogin__()
         else:
             env = 'dev'
             self.ENVButton.SetLabel(f"{env}")
@@ -231,6 +234,8 @@ class StockInUI(wx.Frame):
             cur.execute(
                 f"UPDATE `Var_3PL_Table` SET `TestEnv` = '{env}' WHERE ID = 1")
             conn.commit()
+            __TPLCMSlogin__()
+            __WMSLogin__()
 
     def StorageTypeSetting(self, event):
         global StorageType

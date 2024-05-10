@@ -1,4 +1,5 @@
-import requests , mimetypes 
+import requests
+import mimetypes
 import pandas as pd
 import time
 import json
@@ -104,7 +105,7 @@ def __BatchUploadTotes__(totecode):
     conn.commit()
     data = {'Tote Code': totecode}
     df = pd.DataFrame(data)
-    excel_file = 'ToteCodeList.xlsx' 
+    excel_file = 'ToteCodeList.xlsx'
     df.to_excel(excel_file, index=False)
     upload_url = f'https://mix-{TestEnv.lower()}.hkmpcl.com.hk/hktv_mix/cms/inventory_tote/upload'
     headers = {
@@ -112,11 +113,11 @@ def __BatchUploadTotes__(totecode):
     }
     mime_type, _ = mimetypes.guess_type('ToteCodeList.xlsx')
     files = {
-        'file': ('ToteCodeList.xlsx',open('ToteCodeList.xlsx', 'rb'),mime_type)
+        'file': ('ToteCodeList.xlsx', open('ToteCodeList.xlsx', 'rb'), mime_type)
     }
     response = requests.post(upload_url, headers=headers, files=files)
-    if response.status_code == 200 :
-        print("Batch upload totes to MIX successfully")
+    if response.status_code == 200:
+        print("Batch upload totes registration successfully")
         print(response.json())
     return totecode
 

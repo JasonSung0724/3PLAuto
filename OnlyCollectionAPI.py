@@ -21,7 +21,8 @@ class CollectionAPI(wx.Frame):
         font = wx.Font(12, wx.FONTFAMILY_DEFAULT,
                        wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
         self.GetStatusBar().SetFont(font)
-        wx.MessageBox("你可以自行創建訂單後進入工作站，在按下執行\n也可以在介面上輸入你的MMS帳號\密碼以及箱子數量後自動創建訂單\n自動創建好的訂單會顯示在介面上，拿著該訂單號進入工作站後\n在按下執行開始Call api","說明",wx.OK|wx.ICON_WARNING)
+        wx.MessageBox("你可以自行創建訂單後進入工作站\n並在介面中輸入你的訂單號碼後按下執行\n也可以在介面上輸入你的MMS帳號\密碼以及箱子數量後自動創建訂單\n自動創建好的訂單會顯示在介面上，拿著該訂單號進入工作站後\n在按下執行開始Call api",
+                      "說明", wx.OK | wx.ICON_WARNING)
         cur.execute("SELECT TestEnv FROM `Var_3PL_Table` WHERE ID = 1")
         Result = cur.fetchone()
         TestEnv = Result[0]

@@ -3,7 +3,7 @@ import requests
 from datetime import datetime
 from GlobalVar import *
 
-env = 'dev'
+env = 'staging'
 Account = "cindy.yeh@shoalter.com"
 Password = "Aa123456"
 Creator = "Jason"
@@ -177,6 +177,7 @@ class CreateProduct(wx.Frame):
         self.ENVButton.Bind(wx.EVT_TOGGLEBUTTON, self.ENV_Setting)
         
     def ENV_Setting(self ,event):
+        global env
         if self.ENVButton.GetValue():
             env = 'staging'
             self.ENVButton.SetLabel(f"{env}")
@@ -489,15 +490,25 @@ class CreateProduct(wx.Frame):
     def Get_Merchant_Info(self,event):
         global Account , Password , headers ,\
             AccessToken, MerchantId , store_info_dict , MerchantName
-        Login_url = f'https://mms-user-{env}.hkmpcl.com.hk/user/login/merchantAppLogin2'
-        print(Login_url)
-        login_request_body = {
-            "password": Password,
-            "username": Account
-        }
-        Tokenresponse = requests.post(Login_url , json=login_request_body)
-        print(Tokenresponse.json())
-        AccessToken = Tokenresponse.json()['accessToken']
+        try :
+            Login_url = f'https://mms-user-{env}.hkmpcl.com.hk/user/login/merchantAppLogin2'
+            print(Login_url)
+            login_request_body = {
+                "password": Password,
+                "username": Account
+            }
+            Tokenresponse = requests.post(Login_url , json=login_request_body)
+            print(Tokenresponse.json())
+            AccessToken = Tokenresponse.json()['accessToken']
+        except :
+            Login_url = f'https://mms-user-{env}.hkmpcl.com.hk/user/login/webLogi'
+            login_request_body = {
+            "userCode": "jason.sung@shoalter.com",
+            "userPwd": "BeF0YoWHPn5DOG7JMHwCVQ=="
+            }
+            Tokenresponse = requests.post(Login_url , json=login_request_body)
+            print(Tokenresponse.json())
+            AccessToken = Tokenresponse.json()['accessToken']
         if Tokenresponse.status_code == 200 :
             self.SetStatusText("Login success :  Account : " + Account + " Paswword : " + Password)
             self.ProductReadyDaysOption.Clear()
