@@ -503,8 +503,8 @@ class CreateProduct(wx.Frame):
         except :
             Login_url = f'https://mms-user-{env}.hkmpcl.com.hk/user/login/webLogi'
             login_request_body = {
-            "userCode": "jason.sung@shoalter.com",
-            "userPwd": "BeF0YoWHPn5DOG7JMHwCVQ=="
+            "userCode": Account,
+            "userPwd": Password
             }
             Tokenresponse = requests.post(Login_url , json=login_request_body)
             print(Tokenresponse.json())
