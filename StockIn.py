@@ -4,9 +4,9 @@ import json
 import re
 from GlobalVar import *
 from internalToteIn import __WMSLogin__
+from Binding import __CheckBookingExist__
 
 BookingDict = {}
-
 
 def __GetBookingInfo__(BookingNumber):
     global BookingDict
@@ -30,7 +30,8 @@ def __GetBookingInfo__(BookingNumber):
     BookingDict = {}
     if BookingResponse.status_code == 200:
         BookingInfoList = BookingInfo['data']['bookingRecords']
-        if BookingInfoList[0]['status'] == "MAPPED":
+        print(BookingInfoList[0]['status'])
+        if __CheckBookingExist__(BookingNumber,"MAPPED"):
             print("Total batches count : " + str(len(BookingInfoList)))
             for batchinfo in BookingInfoList:
                 Ean = batchinfo['ean']
@@ -75,6 +76,8 @@ def __GetBookingInfo__(BookingNumber):
             status = "Stock-in Booking status has not been change to MAPPED yet."
             print(status)
             # return status
+    else:
+        print("WMS build?")
 
 
 def __StockInAPIFlow__(BookingNumber, StationKey):
@@ -112,7 +115,6 @@ def __StockInAPIFlow__(BookingNumber, StationKey):
         for toteCode in BookingDict.keys():
             __M5104__(toteCode, StationKey)
             time.sleep(2)
-
         # M5112
         time.sleep(2)
         for toteCode in BookingDict.keys():

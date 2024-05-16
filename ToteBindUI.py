@@ -400,6 +400,8 @@ class RunStockInAPI(wx.Dialog):
             self.StationKey_text.SetValue("")
             self.StationKey_text.Clear()
             return
+        wx.MessageBox('如果箱子越多會跑越久，因為避免錯誤API打太快導致錯誤，所以每一次Call API 都會間隔2秒\n請稍後，等到APP收到回應後再去Station按入倉完成', 'Warning',
+                      wx.OK | wx.ICON_WARNING)
         Response = __StockInAPIFlow__(BookingNumber=self.BookingNumber,
                                       StationKey=stationKey)
         print(Response)
