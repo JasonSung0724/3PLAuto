@@ -18,13 +18,12 @@ def __GetBookingInfo__(BookingNumber):
     TestEnv = Result[0]
     conn.commit()
     if TestEnv == 'dev':
-        WMSheaders = {'Authorization': f'Bearer {WMStoken}'
-                      }
+        headers = {'Authorization': f'Bearer {WMStoken}'}
     else:
-        WMSheaders = {'authorization': f'Bearer {WMStoken}'
-                      }
-    GetBookingInfoURL = f'https://mwms-whtsy-dev.hkmpcl.com.hk/hktv_ty_mwms/cms/tote/booking_job/tote_record?bookingType=Stock+In&bookingNo={BookingNumber}&pageNo=1&pageSize=100'
-    BookingResponse = requests.get(GetBookingInfoURL, headers=WMSheaders)
+        headers = {'authorization': f'Bearer {WMStoken}'}
+
+    GetBookingInfoURL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/cms/tote/booking_job/tote_record?bookingType=Stock+In&bookingNo={BookingNumber}&pageNo=1&pageSize=100'
+    BookingResponse = requests.get(GetBookingInfoURL, headers=headers)
     BookingInfo = BookingResponse.json()
     print(BookingResponse.status_code)
     BookingDict = {}
@@ -41,7 +40,7 @@ def __GetBookingInfo__(BookingNumber):
                 ToteCode = batchinfo['toteNo']
                 SKUdetailURL = f'https://mwms-whtsy-{TestEnv.lower()}.hkmpcl.com.hk/hktv_ty_mwms/cms/sku_inventory?pageNo=1&pageSize=10&skuUuid={SKUuuid}'
                 SKUdetailResponse = requests.get(
-                    SKUdetailURL, headers=WMSheaders).json()
+                    SKUdetailURL, headers=headers).json()
                 SKUdetail = SKUdetailResponse['data']['skuInventories'][0]
                 skuWeight_unit = re.match(r"(\d+)", SKUdetail['skuWeight'])
                 skuWeight = float(skuWeight_unit.group(1))

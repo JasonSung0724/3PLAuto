@@ -217,12 +217,12 @@ def __CycleCount__(BookingNumber):
                 TOTE = SKUdict[batchid[0]]['toteNo']
             except IndexError:
                 print("Dirty data")
-                return "Dirty data"
+                # return "Dirty data"
             except KeyError:
                 print(
                     f"Dirty data , have multiple batchid with same compartment {batchid[0]}")
 
-                return f"Dirty data , have multiple batchid with same compartment {batchid[0]}"
+                # return f"Dirty data , have multiple batchid with same compartment {batchid[0]}"
             for batch in batchid:
                 Compartment = SKUdict[batch]['compartment']
                 if Compartment == "A":
@@ -321,4 +321,4 @@ def __WeigthCheck__(BookingNumber):
         return False
 
 # __WMSLogin__()
-# __StockOutAPI__("SOTY3F00000671")
+# __StockOutAPI__("SOTY3F00001101")
