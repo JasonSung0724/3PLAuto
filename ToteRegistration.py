@@ -19,22 +19,27 @@ def __TPLCMSlogin__():
         "password": "1qaz@WSX"
     }
     LoginResponse = requests.post(LoginAPI, json=Account).json()
-    token = LoginResponse['data']['roles']
-    for system in token:
-        if system['system'] == 'MOX':
-            MOXtoken = system['token']
-            cur.execute(
-                f"UPDATE `Var_3PL_Table` SET `MOXtoken` = '{MOXtoken}' WHERE ID = 1")
-        elif system['system'] == "MIX":
-            MIXtoken = system['token']
-            cur.execute(
-                f"UPDATE `Var_3PL_Table` SET `MIXtoken` = '{MIXtoken}' WHERE ID = 1")
-        elif system['system'] == "TPLRS":
-            TPLtoken = system['token']
-            cur.execute(
-                f"UPDATE `Var_3PL_Table` SET `TPLtoken` = '{TPLtoken}' WHERE ID = 1")
-    conn.commit()
-    print("TPLCMS login success")
+    try :
+        token = LoginResponse['data']['roles']
+        for system in token:
+            if system['system'] == 'MOX':
+                MOXtoken = system['token']
+                cur.execute(
+                    f"UPDATE `Var_3PL_Table` SET `MOXtoken` = '{MOXtoken}' WHERE ID = 1")
+            elif system['system'] == "MIX":
+                MIXtoken = system['token']
+                cur.execute(
+                    f"UPDATE `Var_3PL_Table` SET `MIXtoken` = '{MIXtoken}' WHERE ID = 1")
+            elif system['system'] == "TPLRS":
+                TPLtoken = system['token']
+                cur.execute(
+                    f"UPDATE `Var_3PL_Table` SET `TPLtoken` = '{TPLtoken}' WHERE ID = 1")
+        conn.commit()
+        print("TPLCMS login success")
+        print(f"Current environment : {TestEnv}")
+    except:
+        print(f"Current environment : {TestEnv}")
+        print(f'!!!!!!!!!!Get token fail "{TestEnv}"!!!!!!!!!!')
 
 
 '''Please input how much tote you want to generate'''

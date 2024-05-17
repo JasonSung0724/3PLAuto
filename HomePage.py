@@ -15,11 +15,13 @@ from io import StringIO
 
 class LogWindow(wx.Frame):
     def __init__(self):
-        super().__init__(None, title="Log Viewer", size=(400, 300))
-
+        super().__init__(None, title="Log Viewer", size=(600, 500))
         self.log_text = wx.TextCtrl(
             self, style=wx.TE_MULTILINE | wx.TE_READONLY)
-
+        cur.execute("SELECT TestEnv FROM `Var_3PL_Table` WHERE ID = 1")
+        Result = cur.fetchone()
+        TestEnv = Result[0]
+        conn.commit()
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.log_text, 1, wx.EXPAND | wx.ALL, 5)
         self.SetSizer(sizer)
@@ -29,6 +31,8 @@ class LogWindow(wx.Frame):
         sys.stderr = StringIO()
         sys.stdout.write = self.write_text_ctrl
         sys.stderr.write = self.write_text_ctrl
+        __TPLCMSlogin__()
+        __WMSLogin__()
 
     def write_text_ctrl(self, text):
         self.log_text.AppendText(text)
@@ -136,6 +140,4 @@ if __name__ == "__main__":
     frame.Show()
     log_window = LogWindow()
     log_window.Show()
-    __TPLCMSlogin__()
-    __WMSLogin__()
     app.MainLoop()

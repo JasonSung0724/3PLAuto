@@ -15,12 +15,17 @@ def __WMSLogin__():
         "password": "1qaz@WSX"
     }
     TokenResponse = requests.post(LoginURL, json=Payload).json()
-    WMStoken = TokenResponse['data']['token']
-    cur.execute(
-        f"UPDATE `Var_3PL_Table` SET `WMStoken` = '{WMStoken}' WHERE ID = 1")
-    conn.commit()
-    print("WMSCMS login success")
-    return WMStoken
+    try:
+        WMStoken = TokenResponse['data']['token']
+        cur.execute(
+            f"UPDATE `Var_3PL_Table` SET `WMStoken` = '{WMStoken}' WHERE ID = 1")
+        conn.commit()
+        print("WMSCMS login success")
+        print(f"Current environment : {TestEnv}")
+        return WMStoken
+    except:
+        print(f"Current environment : {TestEnv}")
+        print(f'!!!!!!!!!!Get token fail "{TestEnv}"!!!!!!!!!!')
 
 
 def __GetBookingNumber__(headers, page=1):
